@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Season {{ season_data['season'] }}
+{% endblock %}
+
+{% block body_class %}
+    details_page
+{% endblock %}
+
+{% block main %}
+<main class="season_page">
+    <h2>Season {{ season_data['season'] }}</h2>
+    {% for ep in season_data %}
+        <div class="episode">
+            <!-- Larger Episode Image -->
+            <div class="ep_img">
+                <img src="{{ ep['img'] if ep['img'] else 'static/default.jpg' }}" alt="Episode Image">
+            </div>
+
+            <!-- Episode Details -->
+            <div class="episode_info">
+                <h3 class="ep_title">{{ ep['name'] }}</h3>
+                <p class="ep_description">{{ ep['overview'] }}</p>
+                <p class="ep_meta"><strong>Episode:</strong> {{ ep['episode'] }}</p>
+                <p class="ep_meta"><strong>Air Date:</strong> {{ ep['air_date'] }}</p>
+            </div>
+        </div>
+    {% endfor %}
+</main>
+{% endblock %}

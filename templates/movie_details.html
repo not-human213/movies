@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+
+{% block title %}
+{% endblock %}
+
+{% block body_class %}
+    details_page
+{% endblock %}
+
+{% block main %}
+<main class="details_page">
+    <img src="{{ movie_data['backdrop']   }}" class="bgimg">
+    <section class="showcase">
+        <div class="poster">
+            <img src="{{ movie_data['poster'] }}">
+        </div>
+        <div class="details">
+            <h1>{{ movie_data['name'] }}</h1>
+            <h5>first air date: {{ movie_data['release_date'] }}</h5>
+            <p>
+                {{ movie_data['overview'] }}
+            </p>
+            <div class="genres">
+                {% for gen in movie_data['genres'] %}
+                    <span>{{ gen.name }}</span>
+                {% endfor %}
+            </div>
+            <div class="actions">
+                <button onclick="fetchProfilesAndFolders(type='movie')">Add to Radarr</button>
+                <button id="watchlistButton" class="watchlist_ac" 
+                        data-active="{{ 'true' if movie_data['isinwatchlist'] else 'false' }}" 
+                        onclick="toggleWatchlist('{{ movie_data["""id"""] }}', 0)">
+                    {{ 'Remove from Watchlist' if movie_data['isinwatchlist'] else 'Add to Watchlist' }}
+                </button>
+                <div id="radarrModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <form id="radarrForm">
+                            <div id="qualityProfiles">
+                                <h3>Select Quality Profile</h3>
+                                <!-- Quality profiles will go here -->
+                            </div>
+                            <button type="button" id="nextStep" style="margin-top: 10px;">Next</button>
+                            
+                            <div id="rootFolders" style="display:none; margin-top: 20px;">
+                                <h3>Select Root Folder</h3>
+                                <div id="rootFolderOptions">
+                                    <p></p>
+                                </div>
+                                <button type="button" id="addMedia" style="margin-top: 10px;" data-tmdb-id="{{ movie_data['id'] }}" mtype="movie">Add Movie</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>            
+        </div>
+    </section>
+    <div class="cast-info">
+        <h3>Cast & Crew</h3>
+        <div class="cast-list-grid">
+            {% for actor in movie_data['cast'] %}
+                <div class="cast-member">
+                    <img src="{% if actor['profile_path'] %}https://media.themoviedb.org/t/p/w300_and_h450_bestv2{{ actor['profile_path'] }}{% else %} /assets/icons/person.jpg{% endif %}" alt="image not available">
+                    <p class = "actor_name">{{ actor['personName'] }}</p>
+                    <p class="actor_role">
+                            {{ actor['name'] }}
+                            <br>
+                            as
+                    <img scr = "{../assets/icons/person.jpg}">
+                            <br>
+                             {{ actor['character'] }}
+                        
+                      
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+{% endblock %}

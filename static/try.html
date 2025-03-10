@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Maps Replica</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      height: 100vh;
+      width: 75%;
+      float: left;
+    }
+    #side-menu {
+      width: 25%;
+      height: 100vh;
+      float: right;
+      background: #f4f4f4;
+      padding: 20px;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+    #side-menu h3 {
+      margin-top: 0;
+    }
+    .search-box {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 999;
+    }
+    .search-box input {
+      width: 300px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .option-buttons button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    .option-buttons button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="search-box">
+    <input id="search" type="text" placeholder="Search location...">
+  </div>
+  <div id="map"></div>
+  <div id="side-menu">
+    <h3>Options</h3>
+    <div class="option-buttons">
+      <button onclick="downloadReport()">Download Report</button>
+      <button onclick="compare()">Compare</button>
+      <button onclick="showCharts()">Show Charts</button>
+    </div>
+  </div>
+  
+  <script>
+    let map, searchBox;
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: -34.397, lng: 150.644 },
+        zoom: 8,
+      });
+
+      // Add the search box
+      const input = document.getElementById("search");
+      searchBox = new google.maps.places.SearchBox(input);
+      map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+      // Bias the SearchBox results towards current map viewport.
+      map.addListener("bounds_changed", () => {
+        searchBox.setBounds(map.getBounds());
+      });
+
+      let markers = [];
+
+      // Listen for the event fired when the user selects a prediction
+      searchBox.addListener("places_changed", () => {
+        const places = searchBox.getPlaces();
+        if (places.length === 0) return;
+
+        // Clear out the old markers.
+        markers.forEach((marker) => marker.setMap(null));
+        markers = [];
+
+        // For each place, get the icon, name, and location.
+        const bounds = new google.maps.LatLngBounds();
+        places.forEach((place) => {
+          if (!place.geometry || !place.geometry.location) return;
+
+          markers.push(
+            new google.maps.Marker({
+              map,
+              title: place.name,
+              position: place.geometry.location,
+            })
+          );
+
+          if (place.geometry.viewport) {
+            bounds.union(place.geometry.viewport);
+          } else {
+            bounds.extend(place.geometry.location);
+          }
+
+          // Show the side menu
+          document.getElementById("side-menu").style.display = "block";
+        });
+
+        map.fitBounds(bounds);
+      });
+    }
+
+    // Placeholder functions for side menu options
+    function downloadReport() {
+      alert("Download Report functionality coming soon!");
+    }
+
+    function compare() {
+      alert("Compare functionality coming soon!");
+    }
+
+    function showCharts() {
+      alert("Show Charts functionality coming soon!");
+    }
+  </script>
+
+  <!-- Load the Google Maps API -->
+  <script async
+    src="https://api.olamaps.io/tiles/v1/styles/default-light-standard/static/77.61,12.93,15/800x600.png">
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        watchlist();
+    });
+</script>
+<h3 align="left">Discover</h3>
+<br>
+
+ <div class="carousel-container" style="width: 100%; margin: 0 auto;">
+    <div id="carouselExampleCaptions" class="carousel slide" style="width: 100%;">
+        <div class="carousel-inner" style="width: 100%;">
+            <div class="carousel-item active">
+                <img src="{{ discover_details[0]['backdrop'] }}" class="d-block w-100" alt="...">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5>{{ discover_details[0]['name'] }}</h5>
+                    <p>{{ discover_details[0]['overview'] }}</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{{ discover_details[1]['backdrop'] }}" class="d-block w-100" alt="...">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5>{{ discover_details[1]['name'] }}</h5>
+                    <p>{{ discover_details[1]['overview'] }}</p>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{{ discover_details[2]['backdrop'] }}" class="d-block w-100" alt="...">
+                <div class="carousel-caption d-none d-md-block">
+                    <h5>{{ discover_details[2]['name'] }}</h5>
+                    <p>{{ discover_details[2]['overview'] }}</p>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
+<h3 align="left">Your Watchlist</h3>
+<hr style="background-color: white;">
+<div class="scroll-container" id="scroll-container">
+    {% for ele in uw %}
+    <div class="col-md-1 movie-card">
+        <button type="button" onclick="todetails(event, '{{ ele['id'] }}', '{{ ele['type'] }}')" class="card-btn">
+            <img src="{{ ele['poster'] }}" class="card-img" alt="dsjgk">
+        </button>
+                <div class="card-options">
+                    <button class="btn.watch-btn" data-movie="one"></button>
+                    <button class="btn.like-btn" data-movie="one"></button>
+                    <button class="btn.more-btn" data-movie="one"></button>
+                </div>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+    
+<h3 align="left">Top Rated Shows</h3>
+<hr style="background-color: white;">
+
+<div class="scroll-container" id="scroll-container">
+    {% for show in top_shows %}
+    <div class="col-md-1 movie-card">
+    
+        <button type="button" onclick="todetails(event, '{{ show['id'] }}', 1)" class="card-btn">
+            <img src="{{ show['poster'] }}" class="card-img" alt="dsjgk">
+        </button>
+        <div class="card-options">
+            <button class="btn.watch-btn" data-movie="one"></button>
+            <button class="btn.like-btn" data-movie="one"></button>
+            <button class="btn.more-btn" data-movie="one"></button>
+        </div>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+
+<h3 align="left">Top Rated Movies</h3>
+<hr style="background-color: white;">
+
+<div class="scroll-container" id="scroll-container">
+    {% for movie in top_movies %}
+    <div class="col-md-2 movie-card">
+        
+        <button type="button" onclick="todetails(event, '{{ movie['id'] }}', 0)" class="card-btn">
+            <img src="{{ movie['poster'] }}" class="card-img" alt="dsjgk">
+        </button>
+        <div class="card-options">
+            <button class="btn watch-btn" data-movie="one"></button>
+            <button class="btn like-btn" data-movie="one"></button>
+            <button class="btn more-btn" data-movie="one"></button>
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+
+
+
+{% endblock %}

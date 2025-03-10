@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block title %}
+{% endblock %}
+
+{% block body_class %}
+    details_page
+{% endblock %}
+
+{% block main %}
+<main class="search_page">
+    <div class="tab">
+        <button class="tablinks" onclick="searchtab(event, 'Movies')">Movies</button>
+        <button class="tablinks" onclick="searchtab(event, 'Shows')">Shows</button>
+      </div>
+      <!-- Tab content -->
+      <div id="Movies" class="tabcontent">
+        <h3>Movies</h3>
+        <div class="list-group">
+            {% for Movie in movies %}
+                <button type="button" onclick="todetails(event, '{{ Movie['id'] }}', 0)" class="card-btn">
+                    <div class="movie-item">
+                        <img src="{{ Movie['poster'] }}" class="card-img" alt="Movie Poster">
+                        <div class="movie-info">
+                            <p class="movie-name">{{ Movie['name'] }}</p>
+                            <p class="movie-overview">{{ Movie['overview'] }}</p>
+                        </div>
+                    </div>
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+    
+      
+    <div id="Shows" class="tabcontent">
+        <h3>Movies</h3>
+        <div class="list-group">
+            {% for Show in shows %}
+                <button type="button" onclick="todetails(event, '{{ Show['id'] }}', 1)" class="card-btn">
+                    <div class="movie-item">
+                        <img src="{{ Show['poster'] }}" class="card-img" alt="Show Poster">
+                        <div class="movie-info">
+                            <p class="movie-name">{{ Show['name'] }}</p>
+                            <p class="movie-overview">{{ Show['overview'] }}</p>
+                        </div>
+                    </div>
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+<script>document.addEventListener("DOMContentLoaded", function() {
+    // Trigger the 'Movies' tab to open by default
+    searchtab(event, 'Movies');
+});</script>
+{% endblock %}

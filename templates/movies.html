@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <div class="row">
+        {% for movie in moviesdata %}
+            <div class="col-md-2 mb-2">
+                <form action="/movies" method="get" class="movie-form">
+                    <input type="hidden" name="movie_id" value="{{ movie['id'] }}">
+                    <div class="card movie-card">
+                        <button type="submit" class="card-btn">
+                            <img src="{{ movie['poster'] }}" class="card-img" alt="Image not available">
+                        </button>
+                        <div class="card-body">
+                            <div class="card-options">
+                                <button class="btn watch-btn" data-movie="one"></button>
+                                <button class="btn like-btn" data-movie="one"></button>
+                                <button class="btn more-btn" data-movie="one"></button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
