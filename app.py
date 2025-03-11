@@ -21,7 +21,7 @@ Session(app)
 # Configure CS50 Library to use SQLite database
 db = SQL("sqlite:///watch.db")
 
-
+print("in app") 
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
@@ -34,6 +34,7 @@ def after_request(response):
 @app.route("/")
 @login_required
 def index():
+    print("in index")
     user_watchlist, discover_details, top_shows, top_movies = apis.home.get_home(session["user_id"])
     # print(top_movies)
     print(session["user_id"])

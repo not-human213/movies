@@ -3,13 +3,15 @@ from tmdbv3api import TMDb, Movie, Collection, TV, Season
 import json
 import sqlite3
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 season = Season()
 tmdb = TMDb()
 tmdb.api_key = os.getenv('TMDB_API_KEY')
 tv = TV()
 Movies = Movie()
-
+print(os.getenv('TMDB_API_KEY'))
 
 class series:
     def discover(page):
@@ -212,6 +214,7 @@ class search:
 
 class watchlist:
     print("watchlist")  
+    print("fdsfjgsdfkg")
     def disp(self, user_id):
         
         db = sqlite3.connect('watch.db')
@@ -324,7 +327,8 @@ class arr:
 
         response = requests.post(add_url, headers=headers, json=payload)
         # response.raise_for_status()
-        
+        print("raddarrr response")
+        print(response)
         if response.status_code == 201:
             print("Movie added successfully.")
             return True
