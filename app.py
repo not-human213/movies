@@ -214,34 +214,69 @@ def watchlist():
             return jsonify({"success": True})
 
 
-@app.route('/arr', methods=["GET", "POST"])
-def radarr():
+@app.route('/arr', methods=["GET", "POST", "DELETE"])
+def arr_route():
     user_id = session["user_id"]
     warr = request.args.get('arr')
-    arr = apis.arr(warr)
+    arr_instance = apis.arr(warr)
+
     if request.method == "GET":
         print("arr in app", warr)
-        radarr_conn = arr.check_connection()
-        if radarr_conn['status']:
-            if request.args.get('action') == 'get_profiles':
-                    return jsonify(arr.get_profiles())
-                
-            if request.args.get('action') == 'checkmovie':
-                tmdbid = request.args.get('tmdbid')
-                return jsonify(arr.isadded(tmdbid, user_id))
+        arr_conn = arr_instance.check_connection()
+        if not arr_conn.get('status'):
+            return jsonify({"error": f"Failed to connect to {warr}."}), 400
+
+        action = request.args.get('action')
+        if action == 'get_profiles':
+            return jsonify(arr_instance.get_profiles())
+        elif action == 'checkmovie':
+            tmdbid = request.args.get('tmdbid')
+            exists = arr_instance.isadded(tmdbid, user_id)
+            return jsonify({"exists": exists})
         else:
-            return jsonify({"error": "Failed to connect to Radarr."}), 400
-                
+            return jsonify({"error": "Invalid action"}), 400
+
+    elif request.method == "POST":
+        print(f"{warr} POST")
+        arr_conn = arr_instance.check_connection()
+        if not arr_conn.get('status'):
+            return jsonify({"error": f"Failed to connect to {warr}."}), 400
+
+        action = request.args.get('action')
+        data = request.json
+
+        if action == "add":
+            # Check if already exists
+            exists = arr_instance.isadded(data, user_id)
+            if exists:
+                return jsonify({"success": False, "message": "Already exists", "already_exists": True})
+            added = arr_instance.add(data, user_id)
+            if added:
+                return jsonify({"success": True, "message": "Added successfully"})
+            else:
+                return jsonify({"success": False, "message": "Failed to add"})
+        elif action == "remove":
+            # Only for Radarr (movies)
+            tmdbid = data.get('tmdbId')
+            removed = arr_instance.remove(int(tmdbid))
+            if removed:
+                return jsonify({"success": True, "message": "Removed successfully"})
+            else:
+                return jsonify({"success": False, "message": "Failed to remove"})
+        else:
+            return jsonify({"error": "Invalid action"}), 400
+
+    elif request.method == "DELETE":
+        # Support DELETE for removing from Radarr/Sonarr
+        data = request.json
+        tmdbid = data.get('tmdbId')
+        removed = arr_instance.remove(int(tmdbid))
+        if removed:
+            return jsonify({"success": True, "message": "Removed successfully"})
+        else:
+            return jsonify({"success": False, "message": "Failed to remove"})
+
     else:
-        print("radarr post")
-        radarr_conn = arr.check_connection()
-        if request.args.get('action') == "add":
-            print("radarr add")
-            data = request.json
-            print(data)
-            status = arr.isadded(data, user_id)
-            if status:
-                print("added successfully in app")
-                return jsonify({"success": True})
-            
+        return jsonify({"error": "Invalid method"}), 405
+
 

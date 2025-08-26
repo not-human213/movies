@@ -26,30 +26,31 @@
                 {% endfor %}
             </div>
             <div class="actions">
-                <button onclick="fetchProfilesAndFolders(type='show')">Add to Sonarr</button>
+                <div id="sonarr-message" style="color: #0f0; margin-bottom: 10px;"></div>
+
+                <button id="sonarr-btn" onclick="handleSonarrClick()" data-tvdb-id="{{ show_data['id'] }}">
+                    Add to Sonarr
+                </button>
+
                 <button id="watchlistButton" class="watchlist_ac" 
-                data-active="{{ 'true' if show_data['isinwatchlist'] else 'false' }}" 
-                onclick="toggleWatchlist('{{ show_data['id'] }}', 1)">
+                    data-active="{{ 'true' if show_data['isinwatchlist'] else 'false' }}" 
+                    onclick="toggleWatchlist('{{ show_data['id'] }}', 1)">
                     {{ 'Remove from Watchlist' if show_data['isinwatchlist'] else 'Add to Watchlist' }}
                 </button>
-                <div id="radarrModal" class="modal">
+
+                <div id="sonarrModal" class="modal">
                     <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <form id="radarrForm">
-                            <div id="qualityProfiles">
-                                <h3>Select Quality Profile</h3>
-                                <!-- Quality profiles will go here -->
-                            </div>
-                            <button type="button" id="nextStep" style="margin-top: 10px;">Next</button>
-                            
-                            <div id="rootFolders" style="display:none; margin-top: 20px;">
-                                <h3>Select Root Folder</h3>
-                                <div id="rootFolderOptions">
-                                    <p></p>
-                                </div>
-                                <button type="button" id="addMedia" style="margin-top: 10px;" data-tmdb-id="{{ show_data['id'] }}" mtype="show">Add Show</button>
-                            </div>
-                        </form>
+                        <span class="close" id="sonarrModalClose">&times;</span>
+                        <div class="sonarr-step" id="sonarr-step-1">
+                            <h3>Select Quality Profile</h3>
+                            <div id="sonarrQualityProfiles"></div>
+                            <button type="button" id="sonarrNextStep" class="radarr-modal-btn">Next</button>
+                        </div>
+                        <div class="sonarr-step" id="sonarr-step-2" style="display:none;">
+                            <h3>Select Root Folder</h3>
+                            <div id="sonarrRootFolderOptions"></div>
+                            <button type="button" id="sonarrAddMedia" class="radarr-modal-btn" data-tvdb-id="{{ show_data['id'] }}" mtype="show">Add Show</button>
+                        </div>
                     </div>
                 </div>
 

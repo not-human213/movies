@@ -9,21 +9,17 @@
     <div class="row">
         {% for show in show_data %}
             <div class="col-md-2 mb-2">
-                <form action="/shows" method="get" class="movie-form">
-                    <input type="hidden" name="show_id" value="{{ show['id'] }}">
-                    <div class="card movie-card">
-                        <button type="submit" class="card-btn">
-                            <img src="{{ show['poster'] }}" class="card-img" alt="Image not available">
-                        </button>
-                        <div class="card-body">
-                            <div class="card-options">
-                                <button class="btn watch-btn" data-movie="one"></button>
-                                <button class="btn like-btn" data-movie="one"></button>
-                                <button class="btn more-btn" data-movie="one"></button>
-                            </div>
+                <div class="card movie-card clickable-card" onclick="todetails(event, '{{ show['id'] }}', 0)">
+                    <img src="{{ show['poster'] }}" class="card-img" alt="Image not available">
+                    <div class="card-body">
+                        <div class="card-title">{{ show['name'] }}</div>
+                        <div class="card-options">
+                            <button class="btn watch-btn"></button>
+                            <button class="btn like-btn"></button>
+                            <button class="btn more-btn"></button>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         {% endfor %}
     </div>

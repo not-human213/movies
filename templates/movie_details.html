@@ -26,7 +26,14 @@
                 {% endfor %}
             </div>
             <div class="actions">
-                <button onclick="fetchProfilesAndFolders(type='movie')">Add to Radarr</button>
+                <!-- Add this inside .actions div, above the buttons -->
+                <div id="radarr-message" style="color: #0f0; margin-bottom: 10px;"></div>
+
+                <!-- Update the Add to Radarr button to have an id and dynamic text -->
+                <button id="radarr-btn" onclick="handleRadarrClick()" data-tmdb-id="{{ movie_data['id'] }}">
+                    Add to Radarr
+                </button>
+                
                 <button id="watchlistButton" class="watchlist_ac" 
                         data-active="{{ 'true' if movie_data['isinwatchlist'] else 'false' }}" 
                         onclick="toggleWatchlist('{{ movie_data["""id"""] }}', 0)">
@@ -34,22 +41,17 @@
                 </button>
                 <div id="radarrModal" class="modal">
                     <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <form id="radarrForm">
-                            <div id="qualityProfiles">
-                                <h3>Select Quality Profile</h3>
-                                <!-- Quality profiles will go here -->
-                            </div>
-                            <button type="button" id="nextStep" style="margin-top: 10px;">Next</button>
-                            
-                            <div id="rootFolders" style="display:none; margin-top: 20px;">
-                                <h3>Select Root Folder</h3>
-                                <div id="rootFolderOptions">
-                                    <p></p>
-                                </div>
-                                <button type="button" id="addMedia" style="margin-top: 10px;" data-tmdb-id="{{ movie_data['id'] }}" mtype="movie">Add Movie</button>
-                            </div>
-                        </form>
+                        <span class="close" id="radarrModalClose">&times;</span>
+                        <div class="radarr-step" id="radarr-step-1">
+                            <h3>Select Quality Profile</h3>
+                            <div id="qualityProfiles"></div>
+                            <button type="button" id="nextStep" class="radarr-modal-btn">Next</button>
+                        </div>
+                        <div class="radarr-step" id="radarr-step-2" style="display:none;">
+                            <h3>Select Root Folder</h3>
+                            <div id="rootFolderOptions"></div>
+                            <button type="button" id="addMedia" class="radarr-modal-btn" data-tmdb-id="{{ movie_data['id'] }}" mtype="movie">Add Movie</button>
+                        </div>
                     </div>
                 </div>
             </div>            

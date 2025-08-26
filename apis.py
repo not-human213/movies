@@ -11,7 +11,6 @@ tmdb = TMDb()
 tmdb.api_key = os.getenv('TMDB_API_KEY')
 tv = TV()
 Movies = Movie()
-print(os.getenv('TMDB_API_KEY'))
 
 class series:
     def discover(page):
@@ -309,31 +308,53 @@ class arr:
     # Retrieve and print root folders and quality profiles
 
     def add(self, data, user_id):
-        add_url = f"{getattr(self, f'{self.warr}_url')}/api/v3/movie"
-        headers = {
-            "X-Api-Key": getattr(self, f'{self.warr}_url'),
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "tmdbId": int(data['tmdbId']),
-            # "title" : data['title'],
-            "qualityProfileId": data['qualityProfileId'],
-            "rootFolderPath": data['rootFolderPath'],
-            "monitored": True,
-            "addOptions": {
-                "searchForMovie": True
+        if self.warr == "radarr":
+            add_url = f"{self.radarr_url}/api/v3/movie"
+            headers = {
+                "X-Api-Key": self.radarr_api_key,
+                "Content-Type": "application/json"
             }
-        }
+            payload = {
+                "tmdbId": int(data['tmdbId']),
+                "qualityProfileId": data['qualityProfileId'],
+                "rootFolderPath": data['rootFolderPath'],
+                "monitored": True,
+                "addOptions": {
+                    "searchForMovie": True
+                }
+            }
+        elif self.warr == "sonarr":
+            add_url = f"{self.sonarr_url}/api/v3/series"
+            headers = {
+                "X-Api-Key": self.sonarr_api_key,
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "tvdbId": int(data['tvdbId']),
+                "title": data['title'],
+                "qualityProfileId": data['qualityProfileId'],
+                "rootFolderPath": data['rootFolderPath'],
+                "monitored": True,
+                "seasons": [],
+                "addOptions": {
+                    "searchForMissingEpisodes": True
+                }
+            }
+        else:
+            print("Invalid arr type")
+            return False
 
         response = requests.post(add_url, headers=headers, json=payload)
-        # response.raise_for_status()
-        print("raddarrr response")
+        print(f"{self.warr} response")
         print(response)
-        if response.status_code == 201:
-            print("Movie added successfully.")
+        if response.status_code in [200, 201]:
+            print("Added successfully.")
             return True
         else:
-            print("Failed to add the movie:", response.json())
+            try:
+                print("Failed to add:", response.json())
+            except Exception:
+                print("Failed to add. Status code:", response.status_code)
             return False
 
     def check_connection(self):
@@ -362,7 +383,12 @@ class arr:
             print("error2")
         return {"status": False}
     
-    def isadded(self,data, user_id):
+    def isadded(self, data, user_id):
+        # Accept either a dict or a plain tmdbId
+        if isinstance(data, dict):
+            tmdb_id = int(data.get('tmdbId'))
+        else:
+            tmdb_id = int(data)
         get_url = f"{getattr(self, f'{self.warr}_url')}/api/v3/movie"
         headers = {
             "X-Api-Key": getattr(self, f'{self.warr}_api_key'),
@@ -373,16 +399,35 @@ class arr:
         added_movies = []
         for i in response.json():
             added_movies.append(i['tmdbId'])
-        print(added_movies)       
+        print("Radarr movies:", added_movies)
 
-        if data['tmdbId'] in added_movies:
-            print("Movie already added.") 
+        if tmdb_id in added_movies:
+            print("Movie already added.")
             return True
         else:
-            if self.add(data, user_id):
-                return True
-            else:
-                return False
+            print("Movie not in Radarr.")
+            return False
+
+    def remove(self, tmdb_id):
+        if self.warr != "radarr":
+            return False
+        # Get all movies to find the Radarr movie ID
+        get_url = f"{self.radarr_url}/api/v3/movie"
+        headers = {
+            "X-Api-Key": self.radarr_api_key,
+            "Content-Type": "application/json"
+        }
+        response = requests.get(get_url, headers=headers)
+        if response.status_code != 200:
+            return False
+        for movie in response.json():
+            if movie['tmdbId'] == tmdb_id:
+                movie_id = movie['id']
+                # Delete movie
+                del_url = f"{self.radarr_url}/api/v3/movie/{movie_id}?deleteFiles=false"
+                del_response = requests.delete(del_url, headers=headers)
+                return del_response.status_code == 200 or del_response.status_code == 202
+        return False
 
 
 watchlist_instance = watchlist()
