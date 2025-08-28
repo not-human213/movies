@@ -28,7 +28,7 @@
             <div class="actions">
                 <div id="sonarr-message" style="color: #0f0; margin-bottom: 10px;"></div>
 
-                <button id="sonarr-btn" onclick="handleSonarrClick()" data-tvdb-id="{{ show_data['id'] }}">
+                <button id="sonarr-btn" onclick="handleSonarrClick()" data-tvdb-id="{{ show_data['tvdb_id'] }}">
                     Add to Sonarr
                 </button>
 
@@ -49,7 +49,7 @@
                         <div class="sonarr-step" id="sonarr-step-2" style="display:none;">
                             <h3>Select Root Folder</h3>
                             <div id="sonarrRootFolderOptions"></div>
-                            <button type="button" id="sonarrAddMedia" class="radarr-modal-btn" data-tvdb-id="{{ show_data['id'] }}" mtype="show">Add Show</button>
+                            <button type="button" id="sonarrAddMedia" class="radarr-modal-btn" data-tvdb-id="{{ show_data['tvdb_id'] }}" data-tmdb-id="{{ show_data['id'] }}" mtype="show">Add Show</button>
                         </div>
                     </div>
                 </div>

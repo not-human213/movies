@@ -1,16 +1,16 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Index
+    Shows
 {% endblock %}
 
 {% block main %}
 <div class="container">
     <div class="row">
         {% for show in show_data %}
-            <div class="col-md-2 mb-2">
-                <div class="card movie-card clickable-card" onclick="todetails(event, '{{ show['id'] }}', 0)">
-                    <img src="{{ show['poster'] }}" class="card-img" alt="Image not available">
+            <div class="col-md-2 col-sm-3 col-6 mb-4">
+                <div class="movie-card" onclick="todetails(event, '{{ show['id'] }}', 1)">
+                    <img src="{{ show['poster'] }}" class="card-img" alt="{{ show['name'] }}">
                     <div class="card-body">
                         <div class="card-title">{{ show['name'] }}</div>
                         <div class="card-options">

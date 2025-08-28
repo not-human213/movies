@@ -1,0 +1,32 @@
+/* Settings Page Styles */
+.settings-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.settings-section {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.settings-section h4 {
+    margin-bottom: 20px;
+}
+
+.settings-section form {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.settings-section .btn {
+    margin: 5px;
+}
+
+.settings-section input {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    margin-bottom: 15px;
+}

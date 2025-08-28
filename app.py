@@ -87,6 +87,126 @@ def logout():
     # Redirect user to login form
     return redirect("/")
 
+@app.route("/settings", methods=["GET"])
+@login_required
+def settings():
+    """Show settings page"""
+    user_id = session["user_id"]
+    
+    # Get user's current settings from database
+    user_settings = db.execute("SELECT * FROM user_settings WHERE user_id = ?", user_id)
+    
+    if not user_settings:
+        # If no settings exist, return default values
+        return render_template("settings.html", 
+                            radarr_url="",
+                            radarr_api_key="",
+                            sonarr_url="",
+                            sonarr_api_key="")
+    
+    # Return user's current settings
+    return render_template("settings.html",
+                        radarr_url=user_settings[0]["radarr_url"],
+                        radarr_api_key=user_settings[0]["radarr_api_key"],
+                        sonarr_url=user_settings[0]["sonarr_url"],
+                        sonarr_api_key=user_settings[0]["sonarr_api_key"])
+
+@app.route("/settings/change-password", methods=["POST"])
+@login_required
+def change_password():
+    """Change user password"""
+    data = request.get_json()
+    current_password = data.get("currentPassword")
+    new_password = data.get("newPassword")
+    
+    # Query database for user
+    user = db.execute("SELECT * FROM users WHERE id = ?", session["user_id"])[0]
+    
+    # Verify current password
+    if not check_password_hash(user["hash"], current_password):
+        return jsonify({"success": False, "message": "Current password is incorrect"})
+    
+    # Update password
+    hash = generate_password_hash(new_password)
+    db.execute("UPDATE users SET hash = ? WHERE id = ?", hash, session["user_id"])
+    
+    return jsonify({"success": True})
+
+@app.route("/settings/<service>", methods=["POST"])
+@login_required
+def update_service_settings(service):
+    """Update Radarr/Sonarr settings"""
+    if service not in ["radarr", "sonarr"]:
+        return jsonify({"success": False, "message": "Invalid service"})
+    
+    data = request.get_json()
+    url = data.get("url")
+    api_key = data.get("apiKey")
+    
+    # Update or insert settings
+    existing = db.execute(f"SELECT * FROM user_settings WHERE user_id = ?", session["user_id"])
+    if existing:
+        db.execute(f"UPDATE user_settings SET {service}_url = ?, {service}_api_key = ? WHERE user_id = ?",
+                  url, api_key, session["user_id"])
+    else:
+        db.execute(f"INSERT INTO user_settings (user_id, {service}_url, {service}_api_key) VALUES (?, ?, ?)",
+                  session["user_id"], url, api_key)
+    
+    return jsonify({"success": True})
+
+@app.route("/settings/test-connection/<service>", methods=["POST"])
+@login_required
+def test_connection(service):
+    """Test connection to Radarr/Sonarr"""
+    data = request.get_json()
+    url = data.get("url")
+    api_key = data.get("apiKey")
+    
+    try:
+        # Test connection using the arr class
+        test_arr = arr(service)
+        test_arr.__dict__[f"{service}_url"] = url
+        test_arr.__dict__[f"{service}_api_key"] = api_key
+        
+        result = test_arr.check_connection()
+        
+        if result.get("status"):
+            return jsonify({"success": True, "message": f"Successfully connected to {service.capitalize()}"})
+        else:
+            return jsonify({"success": False, "message": f"Failed to connect to {service.capitalize()}: {result.get('error', 'Unknown error')}"})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error testing connection: {str(e)}"})
+
+@app.route("/settings/reset-account", methods=["POST"])
+@login_required
+def reset_account():
+    """Reset user account settings and watchlist"""
+    try:
+        # Clear user settings
+        db.execute("DELETE FROM user_settings WHERE user_id = ?", session["user_id"])
+        # Clear watchlist
+        db.execute("DELETE FROM watchlist WHERE user_id = ?", session["user_id"])
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+@app.route("/settings/delete-account", methods=["POST"])
+@login_required
+def delete_account():
+    """Delete user account"""
+    try:
+        # Delete user settings
+        db.execute("DELETE FROM user_settings WHERE user_id = ?", session["user_id"])
+        # Delete watchlist
+        db.execute("DELETE FROM watchlist WHERE user_id = ?", session["user_id"])
+        # Delete user
+        db.execute("DELETE FROM users WHERE id = ?", session["user_id"])
+        # Clear session
+        session.clear()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
 
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
@@ -233,6 +353,10 @@ def arr_route():
             tmdbid = request.args.get('tmdbid')
             exists = arr_instance.isadded(tmdbid, user_id)
             return jsonify({"exists": exists})
+        elif action == 'checkshow': # Add this block
+            tvdbid = request.args.get('tvdbid')
+            exists = arr_instance.isadded(tvdbid, user_id)
+            return jsonify({"exists": exists})
         else:
             return jsonify({"error": "Invalid action"}), 400
 
@@ -256,9 +380,16 @@ def arr_route():
             else:
                 return jsonify({"success": False, "message": "Failed to add"})
         elif action == "remove":
-            # Only for Radarr (movies)
-            tmdbid = data.get('tmdbId')
-            removed = arr_instance.remove(int(tmdbid))
+            media_id = None
+            if warr == 'radarr':
+                media_id = data.get('tmdbId')
+            elif warr == 'sonarr':
+                media_id = data.get('tvdbId')
+
+            if not media_id:
+                return jsonify({"success": False, "message": "Media ID not provided"}), 400
+
+            removed = arr_instance.remove(int(media_id))
             if removed:
                 return jsonify({"success": True, "message": "Removed successfully"})
             else:

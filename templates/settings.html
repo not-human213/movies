@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Settings
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <div class="settings-container">
+        <h2 class="text-white mb-4">Account Settings</h2>
+        
+        <!-- Change Password Section -->
+        <div class="settings-section">
+            <h4 class="text-white">Change Password</h4>
+            <form id="changePasswordForm" class="mb-4">
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="currentPassword" placeholder="Current Password" required>
+                </div>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="newPassword" placeholder="New Password" required>
+                </div>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm New Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Password</button>
+            </form>
+        </div>
+
+        <!-- Radarr Configuration -->
+        <div class="settings-section">
+            <h4 class="text-white">Radarr Settings</h4>
+            <form id="radarrForm" class="mb-4">
+                <div class="mb-3">
+                    <input type="url" class="form-control" id="radarrUrl" placeholder="Radarr URL (e.g., http://localhost:7878)" value="{{ radarr_url }}" required>
+                </div>
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="radarrApiKey" placeholder="Radarr API Key" value="{{ radarr_api_key }}" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Radarr Settings</button>
+                <button type="button" class="btn btn-secondary" onclick="testConnection('radarr')">Test Connection</button>
+            </form>
+        </div>
+
+        <!-- Sonarr Configuration -->
+        <div class="settings-section">
+            <h4 class="text-white">Sonarr Settings</h4>
+            <form id="sonarrForm" class="mb-4">
+                <div class="mb-3">
+                    <input type="url" class="form-control" id="sonarrUrl" placeholder="Sonarr URL (e.g., http://localhost:8989)" value="{{ sonarr_url }}" required>
+                </div>
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="sonarrApiKey" placeholder="Sonarr API Key" value="{{ sonarr_api_key }}" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Sonarr Settings</button>
+                <button type="button" class="btn btn-secondary" onclick="testConnection('sonarr')">Test Connection</button>
+            </form>
+        </div>
+
+        <!-- Account Management -->
+        <div class="settings-section">
+            <h4 class="text-white">Account Management</h4>
+            <button type="button" class="btn btn-danger" onclick="resetAccount()">Reset Account</button>
+            <button type="button" class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

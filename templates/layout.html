@@ -16,41 +16,86 @@
     <title>Watch Wise: {% block title %}{% endblock %}</title>
 
     <style>
-        /* Floating search results */
+        /* Search Bar and Results Styling */
+        .search-container {
+            position: relative;
+            margin: 0 20px;
+        }
+
+        .searchbar {
+            padding: 10px 15px;
+            width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .searchbar:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            width: 350px;
+        }
+
+        .searchbar::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
         #search-results {
             position: absolute;
             top: 50px;
             left: 50%;
             transform: translateX(-50%);
-            width: 300px;
-            max-height: 400px;
-            background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            width: 350px;
+            max-height: 500px;
+            background-color: rgba(33, 37, 41, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
             overflow-y: auto;
             z-index: 1000;
             display: none;
-        }
-
-        .searchbar {
-            padding: 5px;
-            width: 200px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .result-item {
             display: flex;
-            padding: 10px;
+            padding: 15px;
             cursor: pointer;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .result-item img {
-            width: 50px;
-            margin-right: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
         }
 
         .result-item:hover {
-            background-color: #f0f0f0;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .result-item img {
+            width: 60px;
+            height: 90px;
+            border-radius: 5px;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+
+        .result-item .result-details {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+        }
+
+        .result-item .result-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .result-item .result-type {
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.7);
         }
     </style>
 </head>
@@ -67,10 +112,11 @@
             <div class="collapse navbar-collapse" id="navbar">
                 {% if session["user_id"] %}
                 <ul class="navbar-nav me-auto mt-2">
-                    <li class="nav-item"><a class="nav-link" href="/home">home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/watchlist">wishlist</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/watchlist">Wishlist</a></li>
                     <li class="nav-item"><a class="nav-link" href="/movies">Movies</a></li>
                     <li class="nav-item"><a class="nav-link" href="/shows">Shows</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/settings">Settings</a></li>
                 </ul>
 
                 <ul class="nav justify-content-center">
@@ -78,7 +124,6 @@
                     <!-- Search Results Dropdown -->
                     <div id="search-results" class="search-results" style="display: none;"></div>
                 </ul>
-
 
                 <ul class="navbar-nav ms-auto mt-2">
                     <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
@@ -105,7 +150,7 @@
         {% block main %}{% endblock %}
     </main>
 
-    <script src = "/static/details.js"> </script>
+    <script src="{{ url_for('static', filename='details.js') }}"></script>
 </body>
 
 </html>

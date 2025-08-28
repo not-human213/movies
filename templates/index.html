@@ -5,11 +5,6 @@
 {% endblock %}
 
 {% block main %}
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        watchlist();
-    });
-</script>
 <h3 align="left">Discover</h3>
 <br>
 
@@ -51,50 +46,52 @@
 
 <h3 align="left">Your Watchlist</h3>
 <hr style="background-color: white;">
-<div class="scroll-container" id="scroll-container">
+<div class="scroll-container">
     {% for ele in uw %}
-    <div class="col-md-1 movie-card">
-        <button type="button" onclick="todetails(event, '{{ ele['id'] }}', '{{ ele['type'] }}')" class="card-btn">
-            <img src="{{ ele['poster'] }}" class="card-img" alt="dsjgk">
-        </button>
-                <div class="card-options">
-                    <button class="btn.watch-btn" data-movie="one"></button>
-                    <button class="btn.like-btn" data-movie="one"></button>
-                    <button class="btn.more-btn" data-movie="one"></button>
+        <div class="scroll-item">
+            <div class="movie-card" onclick="todetails(event, '{{ ele['id'] }}', '{{ ele['type'] }}')">
+                <img src="{{ ele['poster'] }}" class="card-img" alt="{{ ele['name'] }}">
+                <div class="card-body">
+                    <div class="card-title">{{ ele['name'] }}</div>
+                    <div class="card-options">
+                        <button class="btn watch-btn"></button>
+                        <button class="btn like-btn"></button>
+                        <button class="btn more-btn"></button>
+                    </div>
                 </div>
-        </form>
-    </div>
+            </div>
+        </div>
     {% endfor %}
 </div>
-    
+
 <h3 align="left">Top Rated Shows</h3>
 <hr style="background-color: white;">
-
-<div class="scroll-container" id="scroll-container">
+<div class="scroll-container">
     {% for show in top_shows %}
-    <div class="col-md-1 movie-card">
-    
-        <button type="button" onclick="todetails(event, '{{ show['id'] }}', 1)" class="card-btn">
-            <img src="{{ show['poster'] }}" class="card-img" alt="dsjgk">
-        </button>
-        <div class="card-options">
-            <button class="btn.watch-btn" data-movie="one"></button>
-            <button class="btn.like-btn" data-movie="one"></button>
-            <button class="btn.more-btn" data-movie="one"></button>
+    <div class="scroll-item">
+        <div class="movie-card" onclick="todetails(event, '{{ show['id'] }}', 1)">
+            <img src="{{ show['poster'] }}" class="card-img" alt="{{ show['name'] }}">
+            <div class="card-body">
+                <div class="card-title">{{ show['name'] }}</div>
+                <div class="card-options">
+                    <button class="btn watch-btn"></button>
+                    <button class="btn like-btn"></button>
+                    <button class="btn more-btn"></button>
+                </div>
+            </div>
         </div>
-        </form>
     </div>
     {% endfor %}
 </div>
 
 <h3 align="left">Top Rated Movies</h3>
 <hr style="background-color: white;">
-
+<!-- Top Rated Movies Section -->
 <div class="scroll-container" id="scroll-container">
     {% for movie in top_movies %}
-    <div class="col-md-2 mb-2">
-        <div class="card movie-card clickable-card" onclick="todetails(event, '{{ movie['id'] }}', 0)">
-            <img src="{{ movie['poster'] }}" class="card-img" alt="Image not available">
+    <div class="scroll-item">
+        <div class="movie-card" onclick="todetails(event, '{{ movie['id'] }}', 0)">
+            <img src="{{ movie['poster'] }}" class="card-img" alt="{{ movie['name'] }}">
             <div class="card-body">
                 <div class="card-title">{{ movie['name'] }}</div>
                 <div class="card-options">
