@@ -9,9 +9,9 @@
     <h3 align="left">Your Watchlist</h3>
     <hr style="background-color: white;">
     <div class="filters-bar d-flex align-items-center gap-2 mb-3">
-        <button class="pill active" data-filter="all">All <span class="count" id="count-all">0</span></button>
-        <button class="pill" data-filter="0">Movies <span class="count" id="count-movies">0</span></button>
-        <button class="pill" data-filter="1">Shows <span class="count" id="count-shows">0</span></button>
+        <button type="button" class="pill active" data-filter="all">All <span class="count" id="count-all">0</span></button>
+        <button type="button" class="pill" data-filter="0">Movies <span class="count" id="count-movies">0</span></button>
+        <button type="button" class="pill" data-filter="1">Shows <span class="count" id="count-shows">0</span></button>
     </div>
     <div id="empty-state" class="empty-state" style="display:none;">
         <div class="empty-art">🍿</div>
@@ -29,24 +29,33 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.getElementById('watchlist-grid');
     try {
+        console.log('Fetching watchlist data...');
         const res = await fetch('/watchlist/data');
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
         const items = await res.json();
+        console.log('Watchlist items received:', items);
+        
         if (!Array.isArray(items) || items.length === 0) {
+            console.log('No items found, showing empty state');
             document.getElementById('empty-state').style.display = 'block';
             return;
         }
+        
         const frag = document.createDocumentFragment();
         let moviesCount = 0, showsCount = 0;
         items.forEach(item => {
+            console.log('Processing item:', item);
             if (item.type === 0) moviesCount++; else showsCount++;
             const col = document.createElement('div');
             col.className = 'col-md-2 col-sm-3 col-6 mb-4';
             col.setAttribute('data-type', String(item.type));
             col.innerHTML = `
                 <div class="movie-card" onclick="todetails(event, '${item.id}', ${item.type})">
-                    <img src="${item.poster || ''}" class="card-img" alt="${item.name}">
+                    <img src="${item.poster || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDIwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMzMzIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+Cjwvc3ZnPg=='}" class="card-img" alt="${item.name || 'Unknown'}" onerror="this.style.background='#333'; this.style.color='#666'; this.innerHTML='No Image';">
                     <div class="card-body">
-                        <div class="card-title">${item.name}</div>
+                        <div class="card-title">${item.name || 'Unknown Title'}</div>
                         <div class="card-options">
                             <button class="btn more-btn" title="Remove" onclick="event.stopPropagation(); removeFromWatchlist('${item.id}', ${item.type})"></button>
                         </div>
@@ -60,10 +69,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('count-all').textContent = String(items.length);
         document.getElementById('count-movies').textContent = String(moviesCount);
         document.getElementById('count-shows').textContent = String(showsCount);
+        
+        console.log(`Counts - All: ${items.length}, Movies: ${moviesCount}, Shows: ${showsCount}`);
 
         // Wire filters
         document.querySelectorAll('.filters-bar .pill').forEach(btn => {
             btn.addEventListener('click', () => {
+                console.log('Filter clicked:', btn.getAttribute('data-filter'));
                 document.querySelectorAll('.filters-bar .pill').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 const f = btn.getAttribute('data-filter');
@@ -71,21 +83,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
     } catch (e) {
-        grid.innerHTML = '<p class="text-danger">Failed to load watchlist.</p>';
+        console.error('Error loading watchlist:', e);
+        grid.innerHTML = '<p class="text-danger">Failed to load watchlist: ' + e.message + '</p>';
     }
 });
 
 function filterGrid(filter) {
+    console.log('Filtering by:', filter);
     const grid = document.getElementById('watchlist-grid');
     const cards = grid.querySelectorAll('[data-type]');
     let visible = 0;
+    
     cards.forEach(c => {
         const type = c.getAttribute('data-type');
         const show = (filter === 'all') || (type === filter);
-        c.style.display = show ? '' : 'none';
+        c.style.display = show ? 'block' : 'none';
         if (show) visible++;
     });
-    document.getElementById('empty-state').style.display = visible === 0 ? 'block' : 'none';
+    
+    console.log(`Visible cards after filter: ${visible}`);
+    const emptyState = document.getElementById('empty-state');
+    if (visible === 0) {
+        emptyState.style.display = 'block';
+    } else {
+        emptyState.style.display = 'none';
+    }
 }
 
 async function removeFromWatchlist(id, type) {

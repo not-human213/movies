@@ -351,33 +351,45 @@ def watchlist():
 @login_required
 def watchlist_data():
     user_id = session.get("user_id")
-    rows = apis.watchlist_instance.disp(user_id)  # likely tuples: (user_id, media_id, type)
-    items = []
-    for row in rows:
-        try:
-            media_id = row[1]
-            mtype = row[2]
-        except Exception:
-            # Fallback for different ordering
-            media_id = row[0] if len(row) > 0 else None
-            mtype = row[2] if len(row) > 2 else 0
-        if media_id is None:
-            continue
-        try:
-            if mtype == 0:
-                d = apis.movies.details(media_id, user_id)
-            else:
-                d = apis.series.details(media_id, user_id)
-            items.append({
-                "id": d.get("id", media_id),
-                "type": mtype,
-                "name": d.get("name"),
-                "poster": d.get("poster")
-            })
-        except Exception:
-            # If details fail, at least return the id/type
-            items.append({"id": media_id, "type": mtype, "name": f"Item {media_id}", "poster": None})
-    return jsonify(items)
+    if not user_id:
+        return jsonify([])
+    
+    try:
+        rows = apis.watchlist.disp(user_id)  # Fixed: use apis.watchlist consistently
+        items = []
+        for row in rows:
+            try:
+                # Assume row format: (user_id, media_id, media_type) or similar
+                if len(row) >= 3:
+                    media_id = row[1]
+                    mtype = row[2]
+                else:
+                    continue
+                    
+                if mtype == 0:  # Movie
+                    d = apis.movies.details(media_id, user_id)
+                else:  # Show
+                    d = apis.series.details(media_id, user_id)
+                
+                items.append({
+                    "id": str(media_id),
+                    "type": int(mtype),
+                    "name": d.get("name", f"Item {media_id}"),
+                    "poster": d.get("poster", "")
+                })
+            except Exception as e:
+                print(f"Error getting details for media_id {media_id}: {e}")
+                # Still add basic info if details fail
+                items.append({
+                    "id": str(media_id), 
+                    "type": int(mtype), 
+                    "name": f"Item {media_id}", 
+                    "poster": ""
+                })
+        return jsonify(items)
+    except Exception as e:
+        print(f"Error in watchlist_data: {e}")
+        return jsonify([])
 
 
 @app.route('/arr', methods=["GET", "POST", "DELETE"])
