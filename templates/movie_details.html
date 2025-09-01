@@ -26,11 +26,9 @@
                 {% endfor %}
             </div>
             <div class="actions">
-                <!-- Add this inside .actions div, above the buttons -->
-                <div id="radarr-message" style="color: #0f0; margin-bottom: 10px;"></div>
+                <div id="radarr-message" class="arr-status" aria-live="polite"></div>
 
-                <!-- Update the Add to Radarr button to have an id and dynamic text -->
-                <button id="radarr-btn" onclick="handleRadarrClick()" data-tmdb-id="{{ movie_data['id'] }}">
+                <button id="radarr-btn" class="arr-btn" onclick="handleRadarrClick()" data-tmdb-id="{{ movie_data['id'] }}">
                     Add to Radarr
                 </button>
                 
