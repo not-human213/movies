@@ -1113,3 +1113,45 @@ h3 {
 }
 .card-options .btn:hover { background: rgba(var(--accent-rgb), 0.2); }
 
+/* Watchlist filters */
+.filters-bar {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px;
+    display: inline-flex;
+}
+.filters-bar .pill {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid transparent;
+    padding: 6px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.filters-bar .pill .count {
+    margin-left: 6px;
+    font-size: 0.8em;
+    color: var(--muted);
+}
+.filters-bar .pill:hover { border-color: rgba(var(--accent-rgb), 0.35); }
+.filters-bar .pill.active {
+    background: rgba(var(--accent-rgb), 0.12);
+    border-color: rgba(var(--accent-rgb), 0.6);
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    border: 1px dashed var(--border);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.03);
+    margin-bottom: 12px;
+}
+.empty-state .empty-art {
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+

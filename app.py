@@ -326,8 +326,9 @@ def search_movies():
 
      
 @app.route('/watchlist', methods=["GET", "POST"]) 
+@login_required
 def watchlist():
-    user_id = session["user_id"]
+    user_id = session.get("user_id")
     action = request.args.get('action')
     if request.method == "GET":
         # Render themed watchlist page
@@ -349,7 +350,7 @@ def watchlist():
 @app.route('/watchlist/data', methods=["GET"])
 @login_required
 def watchlist_data():
-    user_id = session["user_id"]
+    user_id = session.get("user_id")
     rows = apis.watchlist_instance.disp(user_id)  # likely tuples: (user_id, media_id, type)
     items = []
     for row in rows:

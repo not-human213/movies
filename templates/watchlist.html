@@ -8,6 +8,20 @@
 <div class="container">
     <h3 align="left">Your Watchlist</h3>
     <hr style="background-color: white;">
+    <div class="filters-bar d-flex align-items-center gap-2 mb-3">
+        <button class="pill active" data-filter="all">All <span class="count" id="count-all">0</span></button>
+        <button class="pill" data-filter="0">Movies <span class="count" id="count-movies">0</span></button>
+        <button class="pill" data-filter="1">Shows <span class="count" id="count-shows">0</span></button>
+    </div>
+    <div id="empty-state" class="empty-state" style="display:none;">
+        <div class="empty-art">🍿</div>
+        <h4>No items yet</h4>
+        <p class="text-muted">Discover something to add to your watchlist.</p>
+        <div class="d-flex gap-2">
+            <a href="/movies" class="btn btn-primary">Browse Movies</a>
+            <a href="/shows" class="btn btn-outline-info">Browse Shows</a>
+        </div>
+    </div>
     <div class="row" id="watchlist-grid"></div>
 </div>
 
@@ -18,13 +32,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const res = await fetch('/watchlist/data');
         const items = await res.json();
         if (!Array.isArray(items) || items.length === 0) {
-            grid.innerHTML = '<p class="text-muted">Your watchlist is empty.</p>';
+            document.getElementById('empty-state').style.display = 'block';
             return;
         }
         const frag = document.createDocumentFragment();
+        let moviesCount = 0, showsCount = 0;
         items.forEach(item => {
+            if (item.type === 0) moviesCount++; else showsCount++;
             const col = document.createElement('div');
             col.className = 'col-md-2 col-sm-3 col-6 mb-4';
+            col.setAttribute('data-type', String(item.type));
             col.innerHTML = `
                 <div class="movie-card" onclick="todetails(event, '${item.id}', ${item.type})">
                     <img src="${item.poster || ''}" class="card-img" alt="${item.name}">
@@ -38,10 +55,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             frag.appendChild(col);
         });
         grid.appendChild(frag);
+
+        // Set counts
+        document.getElementById('count-all').textContent = String(items.length);
+        document.getElementById('count-movies').textContent = String(moviesCount);
+        document.getElementById('count-shows').textContent = String(showsCount);
+
+        // Wire filters
+        document.querySelectorAll('.filters-bar .pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filters-bar .pill').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const f = btn.getAttribute('data-filter');
+                filterGrid(f);
+            });
+        });
     } catch (e) {
         grid.innerHTML = '<p class="text-danger">Failed to load watchlist.</p>';
     }
 });
+
+function filterGrid(filter) {
+    const grid = document.getElementById('watchlist-grid');
+    const cards = grid.querySelectorAll('[data-type]');
+    let visible = 0;
+    cards.forEach(c => {
+        const type = c.getAttribute('data-type');
+        const show = (filter === 'all') || (type === filter);
+        c.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    document.getElementById('empty-state').style.display = visible === 0 ? 'block' : 'none';
+}
 
 async function removeFromWatchlist(id, type) {
     try {
@@ -54,7 +99,20 @@ async function removeFromWatchlist(id, type) {
             // Remove card from grid
             const grid = document.getElementById('watchlist-grid');
             const card = [...grid.querySelectorAll('.movie-card')].find(c => c.onclick?.toString().includes(`'${id}'`));
-            if (card) card.parentElement.remove();
+            if (card) {
+                const parent = card.parentElement;
+                const typeAttr = parent.getAttribute('data-type');
+                parent.remove();
+                // Update counts
+                const allEl = document.getElementById('count-all');
+                const movEl = document.getElementById('count-movies');
+                const shoEl = document.getElementById('count-shows');
+                allEl.textContent = String(Math.max(0, parseInt(allEl.textContent) - 1));
+                if (typeAttr === '0') movEl.textContent = String(Math.max(0, parseInt(movEl.textContent) - 1));
+                else shoEl.textContent = String(Math.max(0, parseInt(shoEl.textContent) - 1));
+                const active = document.querySelector('.filters-bar .pill.active')?.getAttribute('data-filter') || 'all';
+                filterGrid(active);
+            }
         }
     } catch {}
 }
