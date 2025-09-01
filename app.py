@@ -21,6 +21,20 @@ Session(app)
 # Configure CS50 Library to use SQLite database
 db = SQL("sqlite:///watch.db")
 
+# Ensure settings table exists (idempotent)
+db.execute(
+    """
+    CREATE TABLE IF NOT EXISTS user_settings (
+        user_id INTEGER PRIMARY KEY,
+        radarr_url TEXT,
+        radarr_api_key TEXT,
+        sonarr_url TEXT,
+        sonarr_api_key TEXT,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    )
+    """
+)
+
 print("in app") 
 @app.after_request
 def after_request(response):
@@ -164,12 +178,13 @@ def test_connection(service):
     
     try:
         # Test connection using the arr class
-        test_arr = arr(service)
-        test_arr.__dict__[f"{service}_url"] = url
-        test_arr.__dict__[f"{service}_api_key"] = api_key
-        
+        test_arr = apis.arr(service)
+        # Temporarily override with user-provided values for this test
+        setattr(test_arr, f"{service}_url", url)
+        setattr(test_arr, f"{service}_api_key", api_key)
+
         result = test_arr.check_connection()
-        
+
         if result.get("status"):
             return jsonify({"success": True, "message": f"Successfully connected to {service.capitalize()}"})
         else:

@@ -497,6 +497,7 @@ main.details_page .actor_name{
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
+    line-clamp: 2; /* Standard property */
     -webkit-line-clamp: 2;  /* Limit to 2 lines */
     -webkit-box-orient: vertical;
     color: #555;
@@ -989,4 +990,31 @@ h3 {
     margin-top: 40px;
     margin-bottom: 15px;
 }
+
+/* Settings Page Styles */
+.settings-container {
+    max-width: 1000px;
+}
+.settings-section {
+    background: linear-gradient(135deg, #23272f 0%, #181a20 100%);
+    border: 1px solid rgba(0, 255, 195, 0.12);
+    border-radius: 16px;
+    padding: 20px;
+}
+.settings-section .form-control {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: #e0e0e0;
+}
+.settings-section .form-control::placeholder { color: #aaa; }
+.settings-section .btn-success { background: #00b38a; border: none; }
+.settings-section .btn-success:hover { background: #00a07a; }
+
+/* Tabs tweak on dark */
+.tab { border: none; background: transparent; }
+.tab .btn { border-radius: 999px; }
+.tabcontent { border: none; background: transparent; }
+
+/* Navbar search overrides move here if needed */
+.searchbar { outline: none; }
 

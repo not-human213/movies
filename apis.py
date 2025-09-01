@@ -269,9 +269,9 @@ class arr:
     def __init__(self,warr):
         print("arr in init",warr)
         self.warr = warr
-    sonarr_url = "http://192.168.0.103:8989"  # Sonarr server URL
+    sonarr_url = "http://100.91.85.72:8989"  # Sonarr server URL
     sonarr_api_key = "736dd7007df94766a4f506d9797fc41f"  # Replace with your Sonarr API key1
-    radarr_url = "http://192.168.0.103:7878"  # Radarr server URL
+    radarr_url = "http://100.91.85.72:7878"  # Radarr server URL
     radarr_api_key = "174633fcbe284cbe9c7c06dbd170f1f6"  # Replace with your Radarr API key
 
 
