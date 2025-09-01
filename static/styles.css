@@ -14,37 +14,8 @@
     --accent-grad: linear-gradient(135deg, var(--accent) 0%, var(--accent-3) 40%, var(--accent-2) 100%);
 }
 
-body.bg-black {
-    background: radial-gradient(1200px 600px at 10% -10%, rgba(var(--accent-rgb),0.10), transparent 60%),
-                radial-gradient(900px 500px at 110% 110%, rgba(var(--accent-2-rgb),0.10), transparent 60%),
-                var(--bg-0) !important;
-    color: var(--text);
-}
-.movie-card {
-    /*transperent bg*/
-    
-    color: black;
-}
-main{
-    padding-top: 15px;
-}
-.navbar {
-    margin-bottom: 20px;
-    background: rgba(18,22,29,0.85) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border);
-}
-.navbar .nav-link { position: relative; transition: color 0.2s ease; }
-.navbar .nav-link::after {
-    content: ""; position: absolute; left: 10%; right: 10%; bottom: 6px;
-    height: 2px; background: transparent; border-radius: 2px; transition: background 0.2s ease;
-}
 .navbar .nav-link:hover { color: var(--accent) !important; }
 .navbar .nav-link:hover::after, .navbar .nav-link.active::after { background: var(--accent); }
-.navbar .nav-link.active {
-    color: var(--accent) !important;
-}
 
 .carousel-container {
     position: relative;
@@ -52,6 +23,53 @@ main{
     margin: 0 auto;
 }
 
+.arr-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+    transition: all 0.2s ease;
+}
+.arr-btn::before {
+    content: "➕";
+    font-size: 16px;
+    color: var(--accent);
+    transform: translateZ(0);
+}
+.arr-btn:hover { border-color: rgba(var(--accent-rgb), 0.6); }
+.arr-btn.is-added {
+    background: rgba(var(--accent-rgb), 0.12);
+    border-color: rgba(var(--accent-rgb), 0.6);
+    color: var(--text);
+}
+.arr-btn.is-added::before {
+    content: "✔";
+    color: var(--accent);
+    animation: pulse 0.8s ease;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.arr-status {
+    min-height: 22px;
+    color: var(--text);
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: all 0.25s ease;
+    margin-bottom: 8px;
+}
+.arr-status.show { opacity: 1; transform: translateY(0); }
+.arr-status.ok { color: var(--accent); }
+.arr-status.warn { color: #ffcf66; }
+.arr-status.err { color: #ff6b6b; }
 .carousel-inner {
     display: flex;
     justify-content: start;

@@ -32,9 +32,9 @@
                     Add to Radarr
                 </button>
                 
-                <button id="watchlistButton" class="watchlist_ac" 
-                        data-active="{{ 'true' if movie_data['isinwatchlist'] else 'false' }}" 
-                        onclick="toggleWatchlist('{{ movie_data["""id"""] }}', 0)">
+        <button id="watchlistButton" class="watchlist_ac" 
+            data-active="{{ 'true' if movie_data['isinwatchlist'] else 'false' }}" 
+            onclick="toggleWatchlist('{{ movie_data['id'] }}', 0)">
                     {{ 'Remove from Watchlist' if movie_data['isinwatchlist'] else 'Add to Watchlist' }}
                 </button>
                 <div id="radarrModal" class="modal">

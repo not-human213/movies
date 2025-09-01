@@ -1,38 +1,63 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Log In
+    Watchlist
 {% endblock %}
 
 {% block main %}
-    <nav>
-        <div class="nav nav-tabs" id="nav-tab" role="tablist">
-            <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Home</button>
-            <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Profile</button>
-        </div>
-    </nav>
-    <br>
-    <div class="tab-content" id="nav-tabContent">
-        <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab" tabindex="0">
+<div class="container">
+    <h3 align="left">Your Watchlist</h3>
+    <hr style="background-color: white;">
+    <div class="row" id="watchlist-grid"></div>
+</div>
 
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="card movie-card">
-                        <img src="/static/anime.jpg" class="card-img" alt="dsjgk">
-                        <div class="card-body">
-                            <div class="card-options">
-                                <button class="btn  watch-btn" data-movie="one"></button>
-                                <button class="btn like-btn" data-movie="one"></button>
-                                <button class="btn more-btn" data-movie="one"></button>
-                            </div>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const grid = document.getElementById('watchlist-grid');
+    try {
+        const res = await fetch('/watchlist/data');
+        const items = await res.json();
+        if (!Array.isArray(items) || items.length === 0) {
+            grid.innerHTML = '<p class="text-muted">Your watchlist is empty.</p>';
+            return;
+        }
+        const frag = document.createDocumentFragment();
+        items.forEach(item => {
+            const col = document.createElement('div');
+            col.className = 'col-md-2 col-sm-3 col-6 mb-4';
+            col.innerHTML = `
+                <div class="movie-card" onclick="todetails(event, '${item.id}', ${item.type})">
+                    <img src="${item.poster || ''}" class="card-img" alt="${item.name}">
+                    <div class="card-body">
+                        <div class="card-title">${item.name}</div>
+                        <div class="card-options">
+                            <button class="btn more-btn" title="Remove" onclick="event.stopPropagation(); removeFromWatchlist('${item.id}', ${item.type})"></button>
                         </div>
                     </div>
-                </div>
-            </div>
+                </div>`;
+            frag.appendChild(col);
+        });
+        grid.appendChild(frag);
+    } catch (e) {
+        grid.innerHTML = '<p class="text-danger">Failed to load watchlist.</p>';
+    }
+});
 
-
-        </div>
-        <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">...</div>
-        </div>
+async function removeFromWatchlist(id, type) {
+    try {
+        const response = await fetch('/watchlist?action=remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ media_id: id, media_type: type })
+        });
+        if (response.ok) {
+            // Remove card from grid
+            const grid = document.getElementById('watchlist-grid');
+            const card = [...grid.querySelectorAll('.movie-card')].find(c => c.onclick?.toString().includes(`'${id}'`));
+            if (card) card.parentElement.remove();
+        }
+    } catch {}
+}
+</script>
 {% endblock %}
 

@@ -26,9 +26,9 @@
                 {% endfor %}
             </div>
             <div class="actions">
-                <div id="sonarr-message" style="color: #0f0; margin-bottom: 10px;"></div>
+                <div id="sonarr-message" class="arr-status" aria-live="polite"></div>
 
-                <button id="sonarr-btn" onclick="handleSonarrClick()" data-tvdb-id="{{ show_data['tvdb_id'] }}">
+                <button id="sonarr-btn" class="arr-btn" onclick="handleSonarrClick()" data-tvdb-id="{{ show_data['tvdb_id'] }}">
                     Add to Sonarr
                 </button>
 

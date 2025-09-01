@@ -325,15 +325,13 @@ def search_movies():
         return jsonify([])
 
      
-@app.route('/watchlist', methods=["GET", "POST"])
+@app.route('/watchlist', methods=["GET", "POST"]) 
 def watchlist():
     user_id = session["user_id"]
     action = request.args.get('action')
-    if request.method == "GET":     
-        print("in app", user_id)
-        watchlist = apis.watchlist_instance.disp(user_id)
-        return jsonify(watchlist)
-    
+    if request.method == "GET":
+        # Render themed watchlist page
+        return render_template("watchlist.html")
     else:
         if action == "add":
             data = request.json
@@ -347,6 +345,38 @@ def watchlist():
             type = data.get('media_type')
             apis.watchlist.remove(user_id, media_id, type)
             return jsonify({"success": True})
+
+@app.route('/watchlist/data', methods=["GET"])
+@login_required
+def watchlist_data():
+    user_id = session["user_id"]
+    rows = apis.watchlist_instance.disp(user_id)  # likely tuples: (user_id, media_id, type)
+    items = []
+    for row in rows:
+        try:
+            media_id = row[1]
+            mtype = row[2]
+        except Exception:
+            # Fallback for different ordering
+            media_id = row[0] if len(row) > 0 else None
+            mtype = row[2] if len(row) > 2 else 0
+        if media_id is None:
+            continue
+        try:
+            if mtype == 0:
+                d = apis.movies.details(media_id, user_id)
+            else:
+                d = apis.series.details(media_id, user_id)
+            items.append({
+                "id": d.get("id", media_id),
+                "type": mtype,
+                "name": d.get("name"),
+                "poster": d.get("poster")
+            })
+        except Exception:
+            # If details fail, at least return the id/type
+            items.append({"id": media_id, "type": mtype, "name": f"Item {media_id}", "poster": None})
+    return jsonify(items)
 
 
 @app.route('/arr', methods=["GET", "POST", "DELETE"])
