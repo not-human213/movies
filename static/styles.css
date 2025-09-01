@@ -1,3 +1,19 @@
+:root {
+    --bg-0: #0e0f13;
+    --bg-1: #181a20;
+    --bg-2: #23272f;
+    --accent: #00ffc3;
+    --accent-2: #00b38a;
+    --text: #e0e0e0;
+    --muted: #a7a7a7;
+}
+
+body.bg-black {
+    background: radial-gradient(1200px 600px at top left, rgba(0,255,195,0.06), transparent 60%),
+                radial-gradient(900px 500px at bottom right, rgba(0,179,138,0.06), transparent 60%),
+                var(--bg-0) !important;
+    color: var(--text);
+}
 .movie-card {
     /*transperent bg*/
     
@@ -8,11 +24,25 @@ main{
 }
 .navbar {
     margin-bottom: 20px;
+    background: rgba(24,26,32,0.85) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.navbar .nav-link { position: relative; transition: color 0.2s ease; }
+.navbar .nav-link::after {
+    content: ""; position: absolute; left: 10%; right: 10%; bottom: 6px;
+    height: 2px; background: transparent; border-radius: 2px; transition: background 0.2s ease;
+}
+.navbar .nav-link:hover { color: var(--accent) !important; }
+.navbar .nav-link:hover::after, .navbar .nav-link.active::after { background: var(--accent); }
+.navbar .nav-link.active {
+    color: var(--accent) !important;
 }
 
 .carousel-container {
     position: relative;
-    width: 50%;
+    width: 100%;
     margin: 0 auto;
 }
 
@@ -56,6 +86,12 @@ main{
 
 .carousel-caption p {
     font-size: 1rem;
+}
+
+.carousel-caption {
+    background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.5) 100%);
+    border-radius: 12px;
+    padding: 12px 16px;
 }
 
 .section-title {
@@ -314,11 +350,13 @@ main.details_page .actor_name{
     overflow-x: auto;
     white-space: nowrap;
     height: 250px;
+    scroll-snap-type: x mandatory;
 }
 .movie-card {
     display: inline-block;
     width: 150px; /* Adjust as needed */
     margin-right: 10px; /* Adjust as needed */
+    scroll-snap-align: start;
 }
 .scroll-button {
     position: absolute;
