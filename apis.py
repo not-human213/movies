@@ -213,16 +213,15 @@ class search:
     
 
 class watchlist:
-    print("watchlist")  
-    print("fdsfjgsdfkg")
-    def disp(self, user_id):
-        
+    @staticmethod
+    def disp(user_id):
         db = sqlite3.connect('watch.db')
         cursor = db.cursor()
         get_watchlist = cursor.execute("SELECT * FROM watchlist WHERE user_id = ?", (user_id,)).fetchall()
         db.close()
         return get_watchlist
 
+    @staticmethod
     def add(user_id, media_id, media_type):
         try:
             print("adding ", media_id)  
@@ -237,7 +236,9 @@ class watchlist:
             return True
         except sqlite3.Error as e:
             print(e)
+            return False
     
+    @staticmethod
     def remove(user_id, media_id, type):
         try:
             print("removing ", media_id)
@@ -253,6 +254,7 @@ class watchlist:
         except:
             return False
         
+    @staticmethod
     def isin(user_id, media_id, type):
         try:
             db = sqlite3.connect('watch.db')
