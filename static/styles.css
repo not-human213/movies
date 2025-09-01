@@ -1,16 +1,22 @@
 :root {
-    --bg-0: #0e0f13;
-    --bg-1: #181a20;
-    --bg-2: #23272f;
-    --accent: #00ffc3;
-    --accent-2: #00b38a;
-    --text: #e0e0e0;
-    --muted: #a7a7a7;
+    --bg-0: #0b0f14;
+    --bg-1: #12161d;
+    --bg-2: #191f27;
+    --surface: rgba(25, 31, 39, 0.7);
+    --border: rgba(255,255,255,0.08);
+    --text: #e7ebf0;
+    --muted: #98a2b3;
+    --accent: #22e1ff;
+    --accent-2: #7f7eff;
+    --accent-3: #1dffbd;
+    --accent-rgb: 34, 225, 255; /* #22e1ff */
+    --accent-2-rgb: 127, 126, 255; /* #7f7eff */
+    --accent-grad: linear-gradient(135deg, var(--accent) 0%, var(--accent-3) 40%, var(--accent-2) 100%);
 }
 
 body.bg-black {
-    background: radial-gradient(1200px 600px at top left, rgba(0,255,195,0.06), transparent 60%),
-                radial-gradient(900px 500px at bottom right, rgba(0,179,138,0.06), transparent 60%),
+    background: radial-gradient(1200px 600px at 10% -10%, rgba(var(--accent-rgb),0.10), transparent 60%),
+                radial-gradient(900px 500px at 110% 110%, rgba(var(--accent-2-rgb),0.10), transparent 60%),
                 var(--bg-0) !important;
     color: var(--text);
 }
@@ -24,10 +30,10 @@ main{
 }
 .navbar {
     margin-bottom: 20px;
-    background: rgba(24,26,32,0.85) !important;
+    background: rgba(18,22,29,0.85) !important;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid var(--border);
 }
 .navbar .nav-link { position: relative; transition: color 0.2s ease; }
 .navbar .nav-link::after {
@@ -1015,12 +1021,12 @@ main.details_page .actor_name{
 }
 
 .scroll-container::-webkit-scrollbar-thumb {
-    background: rgba(0, 255, 195, 0.3);
+    background: rgba(var(--accent-rgb), 0.35);
     border-radius: 4px;
 }
 
 .scroll-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 255, 195, 0.5);
+    background: rgba(var(--accent-rgb), 0.55);
 }
 
 /* Section Spacing */
@@ -1034,19 +1040,19 @@ h3 {
     max-width: 1000px;
 }
 .settings-section {
-    background: linear-gradient(135deg, #23272f 0%, #181a20 100%);
-    border: 1px solid rgba(0, 255, 195, 0.12);
+    background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-1) 100%);
+    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 20px;
 }
 .settings-section .form-control {
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.18);
-    color: #e0e0e0;
+    color: var(--text);
 }
 .settings-section .form-control::placeholder { color: #aaa; }
-.settings-section .btn-success { background: #00b38a; border: none; }
-.settings-section .btn-success:hover { background: #00a07a; }
+.settings-section .btn-success { background: none; border: none; background-image: var(--accent-grad); }
+.settings-section .btn-success:hover { filter: brightness(1.05); }
 
 /* Tabs tweak on dark */
 .tab { border: none; background: transparent; }
@@ -1055,4 +1061,37 @@ h3 {
 
 /* Navbar search overrides move here if needed */
 .searchbar { outline: none; }
+.searchbar:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.2);
+}
+
+/* Theme overrides */
+.modal-content {
+    background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-1) 100%) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+}
+.close { color: var(--accent) !important; }
+
+.radarr-modal-btn { background-image: var(--accent-grad); color: #0b0f14; }
+.radarr-modal-btn:disabled { background-image: none; }
+
+.radio-option label { border-color: var(--border); }
+.radio-option label:before { border-color: rgba(var(--accent-rgb), 0.5); }
+.radio-option input[type="radio"]:checked + label { background: rgba(var(--accent-rgb), 0.1); border-color: var(--accent); }
+.radio-option input[type="radio"]:checked + label:before { border-color: var(--accent); }
+.radio-option input[type="radio"]:checked + label:after { background: var(--accent); }
+
+.movie-card { background: var(--surface); border: 1px solid var(--border); }
+.movie-card:hover {
+    box-shadow: 0 12px 24px rgba(var(--accent-rgb), 0.25);
+    border-color: rgba(var(--accent-rgb), 0.6);
+}
+
+.card-options .btn {
+    background: rgba(var(--accent-rgb), 0.1);
+    border: 1px solid rgba(var(--accent-rgb), 0.25);
+}
+.card-options .btn:hover { background: rgba(var(--accent-rgb), 0.2); }
 
