@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const url = document.getElementById('radarrUrl').value;
             const apiKey = document.getElementById('radarrApiKey').value;
+            if (!url || !apiKey) { alert('Please provide URL and API key'); return; }
 
             try {
                 const response = await fetch('/settings/radarr', {
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const url = document.getElementById('sonarrUrl').value;
             const apiKey = document.getElementById('sonarrApiKey').value;
+            if (!url || !apiKey) { alert('Please provide URL and API key'); return; }
 
             try {
                 const response = await fetch('/settings/sonarr', {
@@ -110,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function testConnection(service) {
     const url = document.getElementById(`${service}Url`).value;
     const apiKey = document.getElementById(`${service}ApiKey`).value;
+    if (!url || !apiKey) { alert('Please provide URL and API key'); return; }
 
     try {
         const response = await fetch(`/settings/test-connection/${service}`, {

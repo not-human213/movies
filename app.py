@@ -119,11 +119,19 @@ def settings():
                             sonarr_api_key="")
     
     # Return user's current settings
+    # Mask API keys for UI display (don't show actual key)
+    def mask(key):
+        if not key:
+            return ""
+        if len(key) <= 6:
+            return "*" * len(key)
+        return key[:3] + "*" * (len(key) - 6) + key[-3:]
+
     return render_template("settings.html",
                         radarr_url=user_settings[0]["radarr_url"],
-                        radarr_api_key=user_settings[0]["radarr_api_key"],
+                        radarr_api_key=mask(user_settings[0]["radarr_api_key"]),
                         sonarr_url=user_settings[0]["sonarr_url"],
-                        sonarr_api_key=user_settings[0]["sonarr_api_key"])
+                        sonarr_api_key=mask(user_settings[0]["sonarr_api_key"]))
 
 @app.route("/settings/change-password", methods=["POST"])
 @login_required
@@ -157,6 +165,19 @@ def update_service_settings(service):
     url = data.get("url")
     api_key = data.get("apiKey")
     
+    # Require both url and api_key
+    if not url or not api_key:
+        return jsonify({"success": False, "message": "URL and API key are required"})
+
+    # Test connection before saving
+    try:
+        test = apis.arr(service, url, api_key)
+        result = test.check_connection()
+        if not result.get("status"):
+            return jsonify({"success": False, "message": f"Failed to connect to {service.capitalize()}. Check URL/API key."})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error testing connection: {str(e)}"})
+
     # Update or insert settings
     existing = db.execute(f"SELECT * FROM user_settings WHERE user_id = ?", session["user_id"])
     if existing:
@@ -177,12 +198,8 @@ def test_connection(service):
     api_key = data.get("apiKey")
     
     try:
-        # Test connection using the arr class
-        test_arr = apis.arr(service)
-        # Temporarily override with user-provided values for this test
-        setattr(test_arr, f"{service}_url", url)
-        setattr(test_arr, f"{service}_api_key", api_key)
-
+        # Test connection using provided values
+        test_arr = apis.arr(service, url, api_key)
         result = test_arr.check_connection()
 
         if result.get("status"):
@@ -355,35 +372,47 @@ def watchlist_data():
         return jsonify([])
     
     try:
-        rows = apis.watchlist.disp(user_id)  # Fixed: use apis.watchlist consistently
+        rows = apis.watchlist.disp(user_id)  # rows: (id, user_id, media_id, type)
+        print(f"watchlist_data for user {user_id}: {len(rows)} rows")
         items = []
         for row in rows:
             try:
-                # Assume row format: (user_id, media_id, media_type) or similar
-                if len(row) >= 3:
-                    media_id = row[1]
-                    mtype = row[2]
+                # Row format confirmed: (id, user_id, media_id, type)
+                if len(row) >= 4:
+                    row_id = row[0]
+                    media_id = row[2]
+                    mtype = row[3]
                 else:
                     continue
-                    
+
                 if mtype == 0:  # Movie
                     d = apis.movies.details(media_id, user_id)
                 else:  # Show
                     d = apis.series.details(media_id, user_id)
-                
+
+                # Derive year from release/first air date if present
+                rel = d.get("release_date") or ""
+                year = None
+                try:
+                    year = int(rel[:4]) if rel else None
+                except Exception:
+                    year = None
+
                 items.append({
                     "id": str(media_id),
                     "type": int(mtype),
                     "name": d.get("name", f"Item {media_id}"),
-                    "poster": d.get("poster", "")
+                    "poster": d.get("poster", ""),
+                    "year": year,
+                    "row_id": int(row_id)
                 })
             except Exception as e:
                 print(f"Error getting details for media_id {media_id}: {e}")
                 # Still add basic info if details fail
                 items.append({
-                    "id": str(media_id), 
-                    "type": int(mtype), 
-                    "name": f"Item {media_id}", 
+                    "id": str(media_id),
+                    "type": int(mtype),
+                    "name": f"Item {media_id}",
                     "poster": ""
                 })
         return jsonify(items)
@@ -393,18 +422,33 @@ def watchlist_data():
 
 
 @app.route('/arr', methods=["GET", "POST", "DELETE"])
+@login_required
 def arr_route():
     user_id = session["user_id"]
     warr = request.args.get('arr')
-    arr_instance = apis.arr(warr)
+    if warr not in ("radarr", "sonarr"):
+        return jsonify({"error": "Invalid arr"}), 400
+    # Load user settings
+    settings = db.execute("SELECT radarr_url, radarr_api_key, sonarr_url, sonarr_api_key FROM user_settings WHERE user_id = ?", user_id)
+    if not settings:
+        return jsonify({"error": f"{warr.capitalize()} not configured. Set URL and API key in Settings."}), 400
+    row = settings[0]
+    base_url = row[f"{warr}_url"]
+    api_key = row[f"{warr}_api_key"]
+    if not base_url or not api_key:
+        return jsonify({"error": f"{warr.capitalize()} not configured. Set URL and API key in Settings."}), 400
+    arr_instance = apis.arr(warr, base_url, api_key)
 
     if request.method == "GET":
         print("arr in app", warr)
+        action = request.args.get('action')
+        # Lightweight configured check
+        if action == 'configured':
+            return jsonify({"configured": True})
         arr_conn = arr_instance.check_connection()
         if not arr_conn.get('status'):
             return jsonify({"error": f"Failed to connect to {warr}."}), 400
 
-        action = request.args.get('action')
         if action == 'get_profiles':
             return jsonify(arr_instance.get_profiles())
         elif action == 'checkmovie':

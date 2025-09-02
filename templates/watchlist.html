@@ -13,6 +13,14 @@
         <button type="button" class="pill" data-filter="0">Movies <span class="count" id="count-movies">0</span></button>
         <button type="button" class="pill" data-filter="1">Shows <span class="count" id="count-shows">0</span></button>
     </div>
+    <div class="watchlist-toolbar d-flex align-items-center gap-2 mb-3">
+        <div class="btn-group btn-group-sm sort-group" role="group" aria-label="Sort">
+            <button type="button" class="btn btn-outline-secondary sort-btn active" data-sort="added_desc">Recent</button>
+            <button type="button" class="btn btn-outline-secondary sort-btn" data-sort="alpha_asc">A → Z</button>
+            <button type="button" class="btn btn-outline-secondary sort-btn" data-sort="alpha_desc">Z → A</button>
+            <button type="button" class="btn btn-outline-secondary sort-btn" data-sort="year">Year ↓</button>
+        </div>
+    </div>
     <div id="empty-state" class="empty-state" style="display:none;">
         <div class="empty-art">🍿</div>
         <h4>No items yet</h4>
@@ -28,6 +36,15 @@
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.getElementById('watchlist-grid');
+    // Skeleton loader
+    grid.innerHTML = Array.from({length: 8}).map(() => `
+        <div class="col-md-2 col-sm-3 col-6 mb-4">
+            <div class="movie-card skeleton">
+                <div class="card-img"></div>
+                <div class="card-body"></div>
+            </div>
+        </div>
+    `).join('');
     try {
         console.log('Fetching watchlist data...');
         const res = await fetch('/watchlist/data');
@@ -39,13 +56,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         if (!Array.isArray(items) || items.length === 0) {
             console.log('No items found, showing empty state');
+            grid.innerHTML = '';
             document.getElementById('empty-state').style.display = 'block';
             return;
         }
         
+        // Sorting helpers
+        let data = items.slice();
+        const applySort = (mode) => {
+            switch (mode) {
+                case 'alpha_asc':
+                    data.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+                    break;
+                case 'alpha_desc':
+                    data.sort((a,b) => (b.name||'').localeCompare(a.name||''));
+                    break;
+                case 'year_desc':
+                    data.sort((a,b) => (b.year||0) - (a.year||0));
+                    break;
+                case 'year_asc':
+                    data.sort((a,b) => (a.year||0) - (b.year||0));
+                    break;
+                case 'added_desc':
+                default:
+                    data.sort((a,b) => (b.row_id||0) - (a.row_id||0));
+            }
+        };
+        let currentSort = 'added_desc';
+        applySort(currentSort);
+
+        // Render
+        grid.innerHTML = '';
         const frag = document.createDocumentFragment();
         let moviesCount = 0, showsCount = 0;
-        items.forEach(item => {
+        data.forEach(item => {
             console.log('Processing item:', item);
             if (item.type === 0) moviesCount++; else showsCount++;
             const col = document.createElement('div');
@@ -53,9 +97,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             col.setAttribute('data-type', String(item.type));
             col.innerHTML = `
                 <div class="movie-card" onclick="todetails(event, '${item.id}', ${item.type})">
-                    <img src="${item.poster || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDIwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMzMzIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+Cjwvc3ZnPg=='}" class="card-img" alt="${item.name || 'Unknown'}" onerror="this.style.background='#333'; this.style.color='#666'; this.innerHTML='No Image';">
+                    <img src="${item.poster || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDIwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjMzMzIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTUwIiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+Cjwvc3ZnPg=='}" class="card-img" alt="${item.name || 'Unknown'}">
                     <div class="card-body">
-                        <div class="card-title">${item.name || 'Unknown Title'}</div>
+                        <div class="card-title d-flex align-items-center justify-content-between">
+                            <span>${item.name || 'Unknown Title'}</span>
+                            <span class="badge badge-type ${item.type === 0 ? 'movie' : 'show'}">${item.type === 0 ? 'Movie' : 'Show'}${item.year ? ` · ${item.year}` : ''}</span>
+                        </div>
                         <div class="card-options">
                             <button class="btn more-btn" title="Remove" onclick="event.stopPropagation(); removeFromWatchlist('${item.id}', ${item.type})"></button>
                         </div>
@@ -82,9 +129,58 @@ document.addEventListener('DOMContentLoaded', async () => {
                 filterGrid(f);
             });
         });
+
+        // Wire sorting (segmented buttons)
+        let yearAsc = false;
+        const renderSorted = () => {
+            grid.innerHTML = '';
+            const frag2 = document.createDocumentFragment();
+            data.forEach(item => {
+                const col = document.createElement('div');
+                col.className = 'col-md-2 col-sm-3 col-6 mb-4';
+                col.setAttribute('data-type', String(item.type));
+                col.innerHTML = `
+                    <div class="movie-card" onclick="todetails(event, '${item.id}', ${item.type})">
+                        <img src="${item.poster || ''}" class="card-img" alt="${item.name || 'Unknown'}">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-center justify-content-between">
+                                <span>${item.name || 'Unknown Title'}</span>
+                                <span class="badge badge-type ${item.type === 0 ? 'movie' : 'show'}">${item.type === 0 ? 'Movie' : 'Show'}${item.year ? ` · ${item.year}` : ''}</span>
+                            </div>
+                            <div class="card-options">
+                                <button class="btn more-btn" title="Remove" onclick="event.stopPropagation(); removeFromWatchlist('${item.id}', ${item.type})"></button>
+                            </div>
+                        </div>
+                    </div>`;
+                frag2.appendChild(col);
+            });
+            grid.appendChild(frag2);
+            const active = document.querySelector('.filters-bar .pill.active')?.getAttribute('data-filter') || 'all';
+            filterGrid(active);
+        };
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                let mode = btn.getAttribute('data-sort');
+                if (mode === 'year') {
+                    yearAsc = !yearAsc;
+                    mode = yearAsc ? 'year_asc' : 'year_desc';
+                    btn.textContent = yearAsc ? 'Year ↑' : 'Year ↓';
+                } else {
+                    // Reset year button label
+                    const ybtn = document.querySelector('.sort-btn[data-sort="year"]');
+                    if (ybtn) { ybtn.textContent = 'Year ↓'; yearAsc = false; }
+                }
+                currentSort = mode;
+                applySort(mode);
+                renderSorted();
+            });
+        });
     } catch (e) {
         console.error('Error loading watchlist:', e);
-        grid.innerHTML = '<p class="text-danger">Failed to load watchlist: ' + e.message + '</p>';
+        grid.innerHTML = '';
+        document.getElementById('empty-state').style.display = 'block';
     }
 });
 

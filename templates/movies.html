@@ -9,17 +9,18 @@
     <div class="row">
         {% for movie in moviesdata %}
             <div class="col-md-2 col-sm-3 col-6 mb-4">
-                <div class="movie-card" onclick="todetails(event, '{{ movie['id'] }}', 0)">
-                    <img src="{{ movie['poster'] }}" class="card-img" alt="{{ movie['name'] }}">
-                    <div class="card-body">
-                        <div class="card-title">{{ movie['name'] }}</div>
-                        <div class="card-options">
-                            <button class="btn watch-btn"></button>
-                            <button class="btn like-btn"></button>
-                            <button class="btn more-btn"></button>
+                <a href="/movies?movie_id={{ movie['id'] }}" style="text-decoration: none; color: inherit;">
+                    <div class="movie-card" data-id="{{ movie['id'] }}" data-type="0">
+                        <img src="{{ movie['poster'] }}" class="card-img" alt="{{ movie['name'] }}">
+                        <div class="card-body">
+                            <div class="card-title">{{ movie['name'] }}</div>
+                        </div>
+                        <div class="card-overlay">
+                            <button class="btn btn-overlay btn-add-watchlist" title="Add to Watchlist">+ Watchlist</button>
+                            <button class="btn btn-overlay btn-add-arr" data-arr="radarr" title="Add to Radarr">🎬 Radarr</button>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         {% endfor %}
     </div>

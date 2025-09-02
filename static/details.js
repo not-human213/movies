@@ -60,6 +60,175 @@ function runSearch(event) {
     }
 }
 
+// --- Toast (top-right) ---
+function showToast(message, kind = 'info') {
+    let tray = document.getElementById('toast-tray');
+    if (!tray) {
+        tray = document.createElement('div');
+        tray.id = 'toast-tray';
+        tray.style.position = 'fixed';
+        tray.style.top = '16px';
+        tray.style.right = '16px';
+        tray.style.zIndex = '1100';
+        tray.style.display = 'flex';
+        tray.style.flexDirection = 'column';
+        tray.style.gap = '8px';
+        document.body.appendChild(tray);
+    }
+    const t = document.createElement('div');
+    t.className = `toast-top toast-${kind}`;
+    t.style.padding = '10px 12px';
+    t.style.borderRadius = '10px';
+    t.style.background = 'rgba(24,26,32,0.95)';
+    t.style.color = '#e7ebf0';
+    t.style.border = '1px solid rgba(255,255,255,0.1)';
+    t.style.boxShadow = '0 4px 16px rgba(0,0,0,0.35)';
+    t.textContent = message;
+    tray.appendChild(t);
+    setTimeout(() => {
+        t.style.transition = 'opacity .25s ease';
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 250);
+    }, 1600);
+}
+
+// --- Card overlay actions ---
+document.addEventListener('click', async (e) => {
+    const addWatchBtn = e.target.closest('.btn-add-watchlist, .btn-remove-watchlist');
+    if (addWatchBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const card = addWatchBtn.closest('.movie-card');
+        const id = card?.getAttribute('data-id');
+        const type = card?.getAttribute('data-type');
+        if (!id || type === null) return;
+        try {
+            const isRemove = addWatchBtn.classList.contains('btn-remove-watchlist');
+            const ok = await updateWatchlist(isRemove ? 'remove' : 'add', id, parseInt(type,10));
+            if (ok) {
+                const toast = document.createElement('div');
+                toast.className = 'toast-inline';
+                toast.style.position = 'absolute';
+                toast.style.bottom = '10px';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%)';
+                toast.textContent = isRemove ? 'Removed from Watchlist' : 'Added to Watchlist';
+                card.appendChild(toast);
+                setTimeout(() => toast.remove(), 1400);
+                showToast(isRemove ? 'Removed from Watchlist' : 'Added to Watchlist', 'info');
+                // If on index page and in watchlist section, remove card from DOM
+                if (isRemove) {
+                    addWatchBtn.classList.remove('btn-remove-watchlist');
+                    addWatchBtn.classList.add('btn-add-watchlist');
+                    addWatchBtn.setAttribute('title', 'Add to Watchlist');
+                    // Remove from 'Your Watchlist' strip if present (regardless of where we clicked)
+                    const strips = Array.from(document.querySelectorAll('.scroll-container'));
+                    const wlStrip = strips.find(sc => {
+                        let el = sc.previousElementSibling;
+                        // Skip HR/tag wrappers until we find an H3
+                        while (el && el.tagName !== 'H3') el = el.previousElementSibling;
+                        return el && el.tagName === 'H3' && el.textContent.toLowerCase().includes('your watchlist');
+                    });
+                    if (wlStrip) {
+                        const toRemoveCard = wlStrip.querySelector(`.movie-card[data-id="${id}"]`);
+                        if (toRemoveCard) {
+                            const si = toRemoveCard.closest('.scroll-item');
+                            if (si) si.remove();
+                        }
+                    }
+                    // Also remove the clicked card if it lives inside a watchlist strip
+                    const parentScroll = card.closest('.scroll-container');
+                    if (parentScroll) {
+                        let el = parentScroll.previousElementSibling;
+                        while (el && el.tagName !== 'H3') el = el.previousElementSibling;
+                        if (el && el.textContent.toLowerCase().includes('your watchlist')) {
+                            const scrollItem = card.closest('.scroll-item');
+                            if (scrollItem) scrollItem.remove();
+                        }
+                    }
+                } else {
+                    addWatchBtn.classList.remove('btn-add-watchlist');
+                    addWatchBtn.classList.add('btn-remove-watchlist');
+                    addWatchBtn.setAttribute('title', 'Remove from Watchlist');
+                    // If on index page and 'Your Watchlist' strip exists, append this card quickly if not already there
+                    const strips = Array.from(document.querySelectorAll('.scroll-container'));
+                    const watchlistStrip = strips.find(sc => {
+                        let el = sc.previousElementSibling;
+                        while (el && el.tagName !== 'H3') el = el.previousElementSibling;
+                        return el && el.tagName === 'H3' && el.textContent.toLowerCase().includes('your watchlist');
+                    });
+                    if (watchlistStrip && watchlistStrip.previousElementSibling && watchlistStrip.previousElementSibling.previousElementSibling && watchlistStrip.previousElementSibling.previousElementSibling.textContent?.toLowerCase().includes('your watchlist')) {
+                        const existing = watchlistStrip.querySelector(`.movie-card[data-id="${id}"]`);
+                        if (!existing) {
+                            const itemWrap = document.createElement('div');
+                            itemWrap.className = 'scroll-item';
+                            const link = card.closest('a');
+                            const href = link ? link.getAttribute('href') : (parseInt(type,10)===1?`/shows?show_id=${id}`:`/movies?movie_id=${id}`);
+                            itemWrap.innerHTML = `<a href="${href}" style="text-decoration: none; color: inherit;">${card.outerHTML}</a>`;
+                            watchlistStrip.insertBefore(itemWrap, watchlistStrip.firstChild);
+                        }
+                    }
+                }
+            }
+        } catch {}
+        return;
+    }
+
+    const addArrBtn = e.target.closest('.btn-add-arr');
+    if (addArrBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const card = addArrBtn.closest('.movie-card');
+        const id = card?.getAttribute('data-id');
+        const type = card?.getAttribute('data-type'); // 0 movie, 1 show
+        if (!id || type === null) return;
+        if (parseInt(type,10) === 1) {
+            // Navigate to show details with flag to auto-open Sonarr modal
+            window.location.href = `/shows?show_id=${id}&open_arr=1`;
+        } else {
+            window.location.href = `/movies?movie_id=${id}&open_arr=1`;
+        }
+        return;
+    }
+});
+
+// Auto-open ARR modal on details pages when coming from overlay action
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('open_arr') === '1') {
+        // If Radarr button exists, it's a movie details page; otherwise Sonarr for shows
+        const radarrBtn = document.getElementById('radarr-btn');
+        const sonarrBtn = document.getElementById('sonarr-btn');
+        if (radarrBtn) {
+            fetchProfilesAndFolders('movie');
+        } else if (sonarrBtn) {
+            fetchProfilesAndFolders('show');
+        }
+    }
+    // Initialize overlay watchlist buttons to remove state if needed
+    try {
+        const cards = document.querySelectorAll('.movie-card[data-id][data-type]');
+        if (cards.length) {
+            fetch('/watchlist/data').then(r => r.ok ? r.json() : []).then(list => {
+                if (!Array.isArray(list)) return;
+                const set = new Set(list.map(x => `${x.type}:${x.id}`));
+                cards.forEach(card => {
+                    const id = card.getAttribute('data-id');
+                    const type = card.getAttribute('data-type');
+                    const key = `${parseInt(type,10)}:${id}`;
+                    const btn = card.querySelector('.btn-overlay');
+                    const wlBtn = card.querySelector('.btn-add-watchlist, .btn-remove-watchlist');
+                    if (set.has(key) && wlBtn) {
+                        wlBtn.classList.remove('btn-add-watchlist');
+                        wlBtn.classList.add('btn-remove-watchlist');
+                        wlBtn.setAttribute('title','Remove from Watchlist');
+                    }
+                });
+            }).catch(()=>{});
+        }
+    } catch {}
+});
+
 function searchtab(evt, source) {
     let i, tabcontent, tablinks;
     tabcontent = document.getElementsByClassName("tabcontent");
@@ -84,6 +253,7 @@ function toggleWatchlist(media_id, media_type) {
         if (success) {
             button.setAttribute("data-active", String(!isActive));
             button.innerText = isActive ? "Add to Watchlist" : "Remove from Watchlist";
+            showToast(isActive ? 'Removed from Watchlist' : 'Added to Watchlist', 'info');
         }
     });
 }
@@ -133,19 +303,30 @@ function resetModal(type) {
 }
 
 async function fetchProfilesAndFolders(type) {
-    openModal(type);
     const isMovie = type === 'movie';
     const arr = isMovie ? 'radarr' : 'sonarr';
 
     try {
+    // pre-check configuration
+        const cfgRes = await fetch(`/arr?action=configured&arr=${arr}`);
+        if (!cfgRes.ok) {
+            try { const err = await cfgRes.json(); showToast(err.error || `Configure ${arr} in Settings first.`, 'error'); } catch { showToast(`Configure ${arr} in Settings first.`, 'error'); }
+            return;
+        }
+        openModal(type);
+        // Show loading spinner in step 1 while fetching
+        const qualityContainer = document.getElementById(isMovie ? 'qualityProfiles' : 'sonarrQualityProfiles');
+        if (qualityContainer) {
+            qualityContainer.innerHTML = '<div class="spinner-blob"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+        }
         const profilesResponse = await fetch(`/arr?action=get_profiles&arr=${arr}`);
         if (!profilesResponse.ok) throw new Error('Failed to fetch profiles');
         const [rootFolders, qualityProfiles] = await profilesResponse.json();
 
-        const qualityContainer = document.getElementById(isMovie ? 'qualityProfiles' : 'sonarrQualityProfiles');
-        qualityProfiles.forEach(profile => {
-            const radioName = isMovie ? 'qualityprofile' : 'sonarr_qualityprofile';
-            qualityContainer.innerHTML += `<label><input type="radio" name="${radioName}" value="${profile.id}">${profile.name}</label><br>`;
+            if (qualityContainer) qualityContainer.innerHTML = '';
+            qualityProfiles.forEach(profile => {
+                const radioName = isMovie ? 'qualityprofile' : 'sonarr_qualityprofile';
+                qualityContainer.innerHTML += `<label><input type="radio" name="${radioName}" value="${profile.id}">${profile.name}</label><br>`;
         });
 
         document.getElementById(isMovie ? 'nextStep' : 'sonarrNextStep').onclick = () => {
@@ -215,14 +396,18 @@ async function addToarr(tmdbId, tvdbId) {
         const data = await response.json();
         const mediaType = isMovie ? 'Movie' : 'Show';
         if (data.success || data.already_exists) {
-            msg.textContent = data.already_exists ? `${mediaType} already exists in ${arr}.` : `${mediaType} added to ${arr}!`;
-            btn.textContent = `Remove from ${arr}`;
+            msg.innerHTML = `<span class="toast-inline">${data.already_exists ? `${mediaType} already exists in ${arr}.` : `${mediaType} added to ${arr}!`}</span>`;
+            btn.textContent = isMovie ? 'Remove from Radarr' : 'Remove from Sonarr';
             btn.setAttribute("data-added", "true");
+            btn.classList.add('is-added');
+            showToast(`${mediaType} ${data.already_exists ? 'already exists in' : 'added to'} ${arr}.`, 'info');
         } else {
-            msg.textContent = `Failed to add ${mediaType} to ${arr}.`;
+            msg.innerHTML = `<span class="toast-inline">Failed to add ${mediaType} to ${arr}.</span>`;
+            showToast(`Failed to add ${mediaType} to ${arr}.`, 'error');
         }
     } catch (error) {
-        msg.textContent = `Error adding media to ${arr}.`;
+        msg.innerHTML = `<span class="toast-inline">Error adding media to ${arr}.</span>`;
+    showToast(`Error adding media to ${arr}.`, 'error');
     } finally {
         closeModal(type);
     }
@@ -246,9 +431,12 @@ async function handleRadarrClick() {
         if (data.success) {
             btn.textContent = "Add to Radarr";
             btn.setAttribute("data-added", "false");
-            msg.textContent = "Removed from Radarr!";
+            msg.innerHTML = '<span class="toast-inline">Removed from Radarr!</span>';
+            btn.classList.remove('is-added');
+            showToast('Removed from Radarr', 'info');
         } else {
-            msg.textContent = "Failed to remove from Radarr.";
+            msg.innerHTML = '<span class="toast-inline">Failed to remove from Radarr.</span>';
+            showToast('Failed to remove from Radarr', 'error');
         }
     }
 }
@@ -291,9 +479,12 @@ async function handleSonarrClick() {
         if (data.success) {
             btn.textContent = "Add to Sonarr";
             btn.setAttribute("data-added", "false");
-            msg.textContent = "Removed from Sonarr!";
+            msg.innerHTML = '<span class="toast-inline">Removed from Sonarr!</span>';
+            btn.classList.remove('is-added');
+            showToast('Removed from Sonarr', 'info');
         } else {
-            msg.textContent = "Failed to remove from Sonarr.";
+            msg.innerHTML = '<span class="toast-inline">Failed to remove from Sonarr.</span>';
+            showToast('Failed to remove from Sonarr', 'error');
         }
     }
 }

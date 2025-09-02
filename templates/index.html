@@ -5,28 +5,34 @@
 {% endblock %}
 
 {% block main %}
-<h3 align="left">Discover</h3>
+<h3 align="left" class="section-heading">Discover</h3>
 <br>
 
  <div class="carousel-container" style="width: 100%; margin: 0 auto;">
     <div id="carouselExampleCaptions" class="carousel slide" style="width: 100%;">
         <div class="carousel-inner" style="width: 100%;">
             <div class="carousel-item active">
-                <img src="{{ discover_details[0]['backdrop'] }}" class="d-block w-100" alt="...">
+                <a href="/movies?movie_id={{ discover_details[0]['id'] }}">
+                    <img src="{{ discover_details[0]['backdrop'] }}" class="d-block w-100" alt="{{ discover_details[0]['name'] }}">
+                </a>
                 <div class="carousel-caption d-none d-md-block">
                     <h5>{{ discover_details[0]['name'] }}</h5>
                     <p>{{ discover_details[0]['overview'] }}</p>
                 </div>
             </div>
             <div class="carousel-item">
-                <img src="{{ discover_details[1]['backdrop'] }}" class="d-block w-100" alt="...">
+                <a href="/movies?movie_id={{ discover_details[1]['id'] }}">
+                    <img src="{{ discover_details[1]['backdrop'] }}" class="d-block w-100" alt="{{ discover_details[1]['name'] }}">
+                </a>
                 <div class="carousel-caption d-none d-md-block">
                     <h5>{{ discover_details[1]['name'] }}</h5>
                     <p>{{ discover_details[1]['overview'] }}</p>
                 </div>
             </div>
             <div class="carousel-item">
-                <img src="{{ discover_details[2]['backdrop'] }}" class="d-block w-100" alt="...">
+                <a href="/movies?movie_id={{ discover_details[2]['id'] }}">
+                    <img src="{{ discover_details[2]['backdrop'] }}" class="d-block w-100" alt="{{ discover_details[2]['name'] }}">
+                </a>
                 <div class="carousel-caption d-none d-md-block">
                     <h5>{{ discover_details[2]['name'] }}</h5>
                     <p>{{ discover_details[2]['overview'] }}</p>
@@ -44,63 +50,82 @@
     </div>
 </div>
 
-<h3 align="left">Your Watchlist</h3>
-<hr style="background-color: white;">
-<div class="scroll-container">
-    {% for ele in uw %}
-        <div class="scroll-item">
-            <div class="movie-card" onclick="todetails(event, '{{ ele['id'] }}', '{{ ele['type'] }}')">
-                <img src="{{ ele['poster'] }}" class="card-img" alt="{{ ele['name'] }}">
-                <div class="card-body">
-                    <div class="card-title">{{ ele['name'] }}</div>
-                    <div class="card-options">
-                        <button class="btn watch-btn"></button>
-                        <button class="btn like-btn"></button>
-                        <button class="btn more-btn"></button>
-                    </div>
-                </div>
-            </div>
+<h3 align="left" class="section-heading">Your Watchlist</h3>
+<hr class="section-divider">
+{% if uw|length == 0 %}
+    <div class="empty-state">
+        <div class="empty-icon">💤</div>
+        <div class="empty-title">Your watchlist is empty</div>
+        <div class="empty-subtitle">Start adding movies and shows you want to watch.</div>
+        <div class="empty-actions">
+            <a class="btn btn-primary" href="/movies">Browse Movies</a>
+            <a class="btn btn-outline-light" href="/shows">Browse Shows</a>
         </div>
-    {% endfor %}
-</div>
+    </div>
+{% else %}
+    <div class="scroll-container">
+        {% for ele in uw %}
+            <div class="scroll-item">
+                <a href="{% if ele['type'] == 1 %}/shows?show_id={{ ele['id'] }}{% else %}/movies?movie_id={{ ele['id'] }}{% endif %}" style="text-decoration: none; color: inherit;">
+                    <div class="movie-card" data-id="{{ ele['id'] }}" data-type="{{ ele['type'] }}">
+                        <img src="{{ ele['poster'] }}" class="card-img" alt="{{ ele['name'] }}">
+                        <div class="card-body">
+                            <div class="card-title">{{ ele['name'] }}</div>
+                        </div>
+                        <div class="card-overlay">
+                            <button class="btn btn-overlay btn-add-watchlist" title="Add to Watchlist">+ Watchlist</button>
+                            {% if ele['type'] == 1 %}
+                            <button class="btn btn-overlay btn-add-arr" data-arr="sonarr" title="Add to Sonarr">📺 Sonarr</button>
+                            {% else %}
+                            <button class="btn btn-overlay btn-add-arr" data-arr="radarr" title="Add to Radarr">🎬 Radarr</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
 
-<h3 align="left">Top Rated Shows</h3>
-<hr style="background-color: white;">
+<h3 align="left" class="section-heading">Top Rated Shows</h3>
+<hr class="section-divider">
 <div class="scroll-container">
     {% for show in top_shows %}
     <div class="scroll-item">
-        <div class="movie-card" onclick="todetails(event, '{{ show['id'] }}', 1)">
-            <img src="{{ show['poster'] }}" class="card-img" alt="{{ show['name'] }}">
-            <div class="card-body">
-                <div class="card-title">{{ show['name'] }}</div>
-                <div class="card-options">
-                    <button class="btn watch-btn"></button>
-                    <button class="btn like-btn"></button>
-                    <button class="btn more-btn"></button>
+        <a href="/shows?show_id={{ show['id'] }}" style="text-decoration: none; color: inherit;">
+            <div class="movie-card" data-id="{{ show['id'] }}" data-type="1">
+                <img src="{{ show['poster'] }}" class="card-img" alt="{{ show['name'] }}">
+                <div class="card-body">
+                    <div class="card-title">{{ show['name'] }}</div>
+                </div>
+                <div class="card-overlay">
+                    <button class="btn btn-overlay btn-add-watchlist" title="Add to Watchlist">+ Watchlist</button>
+                    <button class="btn btn-overlay btn-add-arr" data-arr="sonarr" title="Add to Sonarr">📺 Sonarr</button>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
     {% endfor %}
 </div>
 
-<h3 align="left">Top Rated Movies</h3>
-<hr style="background-color: white;">
+<h3 align="left" class="section-heading">Top Rated Movies</h3>
+<hr class="section-divider">
 <!-- Top Rated Movies Section -->
 <div class="scroll-container" id="scroll-container">
     {% for movie in top_movies %}
     <div class="scroll-item">
-        <div class="movie-card" onclick="todetails(event, '{{ movie['id'] }}', 0)">
-            <img src="{{ movie['poster'] }}" class="card-img" alt="{{ movie['name'] }}">
-            <div class="card-body">
-                <div class="card-title">{{ movie['name'] }}</div>
-                <div class="card-options">
-                    <button class="btn watch-btn"></button>
-                    <button class="btn like-btn"></button>
-                    <button class="btn more-btn"></button>
+        <a href="/movies?movie_id={{ movie['id'] }}" style="text-decoration: none; color: inherit;">
+            <div class="movie-card" data-id="{{ movie['id'] }}" data-type="0">
+                <img src="{{ movie['poster'] }}" class="card-img" alt="{{ movie['name'] }}">
+                <div class="card-body">
+                    <div class="card-title">{{ movie['name'] }}</div>
+                </div>
+                <div class="card-overlay">
+                    <button class="btn btn-overlay btn-add-watchlist" title="Add to Watchlist">+ Watchlist</button>
+                    <button class="btn btn-overlay btn-add-arr" data-arr="radarr" title="Add to Radarr">🎬 Radarr</button>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
     {% endfor %}
 </div>

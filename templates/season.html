@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block title %}
-Season {{ season_data['season'] }}
+Season
 {% endblock %}
 
 {% block body_class %}
@@ -9,23 +9,27 @@ Season {{ season_data['season'] }}
 {% endblock %}
 
 {% block main %}
-<main class="season_page">
-    <h2>Season {{ season_data['season'] }}</h2>
-    {% for ep in season_data %}
-        <div class="episode">
-            <!-- Larger Episode Image -->
-            <div class="ep_img">
-                <img src="{{ ep['img'] if ep['img'] else 'static/default.jpg' }}" alt="Episode Image">
-            </div>
-
-            <!-- Episode Details -->
-            <div class="episode_info">
-                <h3 class="ep_title">{{ ep['name'] }}</h3>
-                <p class="ep_description">{{ ep['overview'] }}</p>
-                <p class="ep_meta"><strong>Episode:</strong> {{ ep['episode'] }}</p>
-                <p class="ep_meta"><strong>Air Date:</strong> {{ ep['air_date'] }}</p>
+<main class="season_page container">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="mb-0">Episodes</h2>
+        <div class="text-muted">Season view</div>
+    </div>
+    <div class="row" id="episodes-grid">
+        {% for ep in season_data %}
+        <div class="col-lg-3 col-md-4 col-sm-6 col-12 mb-4">
+            <div class="episode-card">
+                <div class="episode-thumb">
+                    <img src="{{ ep['img'] if ep['img'] else '' }}" alt="Episode Image">
+                    <div class="ep-number">E{{ ep['episode'] }}</div>
+                </div>
+                <div class="episode-body">
+                    <div class="episode-title">{{ ep['name'] }}</div>
+                    <div class="episode-meta">{{ ep['air_date'] }}</div>
+                    <div class="episode-overview">{{ ep['overview'] }}</div>
+                </div>
             </div>
         </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 </main>
 {% endblock %}

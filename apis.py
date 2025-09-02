@@ -268,19 +268,23 @@ class watchlist:
         
 class arr:
 
-    def __init__(self,warr):
-        print("arr in init",warr)
+    def __init__(self, warr, base_url, api_key):
+        """Initialize an arr client for the given service.
+
+        warr: 'radarr' | 'sonarr'
+        base_url: server URL without trailing slash
+        api_key: API key string
+        """
+        print("arr in init", warr)
         self.warr = warr
-    sonarr_url = "http://100.91.85.72:8989"  # Sonarr server URL
-    sonarr_api_key = "736dd7007df94766a4f506d9797fc41f"  # Replace with your Sonarr API key1
-    radarr_url = "http://100.91.85.72:7878"  # Radarr server URL
-    radarr_api_key = "174633fcbe284cbe9c7c06dbd170f1f6"  # Replace with your Radarr API key
+        self.base_url = (base_url or '').rstrip('/')
+        self.api_key = api_key or ''
 
 
     def get_root_folders(self):
         """Retrieve root folders from Radarr."""
-        root_folder_url = f"{getattr(self, f'{self.warr}_url')}/api/v3/rootfolder"
-        headers = {"X-Api-Key": getattr(self, f'{self.warr}_api_key')}
+        root_folder_url = f"{self.base_url}/api/v3/rootfolder"
+        headers = {"X-Api-Key": self.api_key}
 
         response = requests.get(root_folder_url, headers=headers)
         response.raise_for_status()
@@ -292,8 +296,8 @@ class arr:
 
     def get_quality_profiles(self):
         """Retrieve quality profiles from Radarr."""
-        quality_profile_url = f"{getattr(self, f'{self.warr}_url')}/api/v3/qualityprofile"
-        headers = {"X-Api-Key": getattr(self, f'{self.warr}_api_key')}
+        quality_profile_url = f"{self.base_url}/api/v3/qualityprofile"
+        headers = {"X-Api-Key": self.api_key}
 
         response = requests.get(quality_profile_url, headers=headers)
         response.raise_for_status()
@@ -312,9 +316,9 @@ class arr:
 
     def add(self, data, user_id):
         if self.warr == "radarr":
-            add_url = f"{self.radarr_url}/api/v3/movie"
+            add_url = f"{self.base_url}/api/v3/movie"
             headers = {
-                "X-Api-Key": self.radarr_api_key,
+                "X-Api-Key": self.api_key,
                 "Content-Type": "application/json"
             }
             payload = {
@@ -327,9 +331,9 @@ class arr:
                 }
             }
         elif self.warr == "sonarr":
-            add_url = f"{self.sonarr_url}/api/v3/series"
+            add_url = f"{self.base_url}/api/v3/series"
             headers = {
-                "X-Api-Key": self.sonarr_api_key,
+                "X-Api-Key": self.api_key,
                 "Content-Type": "application/json"
             }
             payload = {
@@ -364,8 +368,8 @@ class arr:
         """Check if the connection to the Radarr server is successful."""
         print("Checking connection to Radarr server...")
         print("aarrrrrrr", self.warr)
-        test_url = f"{getattr(self, f'{self.warr}_url')}/api/v3/system/status"
-        headers = {"X-Api-Key": getattr(self, f'{self.warr}_api_key')}
+        test_url = f"{self.base_url}/api/v3/system/status"
+        headers = {"X-Api-Key": self.api_key}
 
         try:
             response = requests.get(test_url, headers=headers)
@@ -392,8 +396,8 @@ class arr:
                 media_id = int(data.get('tmdbId')) if isinstance(data, dict) else int(data)
             except (ValueError, TypeError):
                 return False
-            get_url = f"{self.radarr_url}/api/v3/movie"
-            headers = {"X-Api-Key": self.radarr_api_key}
+            get_url = f"{self.base_url}/api/v3/movie"
+            headers = {"X-Api-Key": self.api_key}
             id_key = 'tmdbId'
         elif self.warr == "sonarr":
             try:
@@ -401,8 +405,8 @@ class arr:
                 media_id = int(data.get('tvdbId')) if isinstance(data, dict) else int(data)
             except (ValueError, TypeError):
                 return False
-            get_url = f"{self.sonarr_url}/api/v3/series"
-            headers = {"X-Api-Key": self.sonarr_api_key}
+            get_url = f"{self.base_url}/api/v3/series"
+            headers = {"X-Api-Key": self.api_key}
             id_key = 'tvdbId'
         else:
             return False
@@ -418,14 +422,14 @@ class arr:
     def remove(self, media_id):
         if self.warr == "radarr":
             id_key = 'tmdbId'
-            get_url = f"{self.radarr_url}/api/v3/movie"
-            del_url_template = f"{self.radarr_url}/api/v3/movie/{{id}}?deleteFiles=false"
-            headers = {"X-Api-Key": self.radarr_api_key}
+            get_url = f"{self.base_url}/api/v3/movie"
+            del_url_template = f"{self.base_url}/api/v3/movie/{{id}}?deleteFiles=false"
+            headers = {"X-Api-Key": self.api_key}
         elif self.warr == "sonarr":
             id_key = 'tvdbId'
-            get_url = f"{self.sonarr_url}/api/v3/series"
-            del_url_template = f"{self.sonarr_url}/api/v3/series/{{id}}?deleteFiles=true"
-            headers = {"X-Api-Key": self.sonarr_api_key}
+            get_url = f"{self.base_url}/api/v3/series"
+            del_url_template = f"{self.base_url}/api/v3/series/{{id}}?deleteFiles=true"
+            headers = {"X-Api-Key": self.api_key}
         else:
             return False
 

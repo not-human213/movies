@@ -9,17 +9,18 @@
     <div class="row">
         {% for show in show_data %}
             <div class="col-md-2 col-sm-3 col-6 mb-4">
-                <div class="movie-card" onclick="todetails(event, '{{ show['id'] }}', 1)">
-                    <img src="{{ show['poster'] }}" class="card-img" alt="{{ show['name'] }}">
-                    <div class="card-body">
-                        <div class="card-title">{{ show['name'] }}</div>
-                        <div class="card-options">
-                            <button class="btn watch-btn"></button>
-                            <button class="btn like-btn"></button>
-                            <button class="btn more-btn"></button>
+                <a href="/shows?show_id={{ show['id'] }}" style="text-decoration: none; color: inherit;">
+                    <div class="movie-card" data-id="{{ show['id'] }}" data-type="1">
+                        <img src="{{ show['poster'] }}" class="card-img" alt="{{ show['name'] }}">
+                        <div class="card-body">
+                            <div class="card-title">{{ show['name'] }}</div>
+                        </div>
+                        <div class="card-overlay">
+                            <button class="btn btn-overlay btn-add-watchlist" title="Add to Watchlist">+ Watchlist</button>
+                            <button class="btn btn-overlay btn-add-arr" data-arr="sonarr" title="Add to Sonarr">📺 Sonarr</button>
                         </div>
                     </div>
-                </div>
+                </a>
             </div>
         {% endfor %}
     </div>
