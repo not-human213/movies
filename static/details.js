@@ -121,19 +121,33 @@ document.addEventListener('click', async (e) => {
                     addWatchBtn.classList.remove('btn-remove-watchlist');
                     addWatchBtn.classList.add('btn-add-watchlist');
                     addWatchBtn.setAttribute('title', 'Add to Watchlist');
-                    // Remove from 'Your Watchlist' strip if present (regardless of where we clicked)
-                    const strips = Array.from(document.querySelectorAll('.scroll-container'));
-                    const wlStrip = strips.find(sc => {
-                        let el = sc.previousElementSibling;
-                        // Skip HR/tag wrappers until we find an H3
-                        while (el && el.tagName !== 'H3') el = el.previousElementSibling;
-                        return el && el.tagName === 'H3' && el.textContent.toLowerCase().includes('your watchlist');
-                    });
+                    // Locate 'Your Watchlist' section elements (heading -> hr -> content)
+                    const wlHeading = Array.from(document.querySelectorAll('h3.section-heading, h3'))
+                        .find(h => h.textContent.trim().toLowerCase().includes('your watchlist'));
+                    const divider = wlHeading ? wlHeading.nextElementSibling : null;
+                    const wlStrip = divider && divider.nextElementSibling && divider.nextElementSibling.classList.contains('scroll-container')
+                        ? divider.nextElementSibling : null;
                     if (wlStrip) {
                         const toRemoveCard = wlStrip.querySelector(`.movie-card[data-id="${id}"]`);
                         if (toRemoveCard) {
                             const si = toRemoveCard.closest('.scroll-item');
-                            if (si) si.remove();
+                            if (si) {
+                                si.remove();
+                                // If it was the last item, replace with empty-state
+                                if (!wlStrip.querySelector('.scroll-item')) {
+                                    const empty = document.createElement('div');
+                                    empty.className = 'empty-state';
+                                    empty.innerHTML = `
+                                        <div class="empty-icon">💤</div>
+                                        <div class="empty-title">Your watchlist is empty</div>
+                                        <div class="empty-subtitle">Start adding movies and shows you want to watch.</div>
+                                        <div class="empty-actions">
+                                            <a class="btn btn-primary" href="/movies">Browse Movies</a>
+                                            <a class="btn btn-outline-light" href="/shows">Browse Shows</a>
+                                        </div>`;
+                                    wlStrip.parentNode.replaceChild(empty, wlStrip);
+                                }
+                            }
                         }
                     }
                     // Also remove the clicked card if it lives inside a watchlist strip
@@ -143,29 +157,51 @@ document.addEventListener('click', async (e) => {
                         while (el && el.tagName !== 'H3') el = el.previousElementSibling;
                         if (el && el.textContent.toLowerCase().includes('your watchlist')) {
                             const scrollItem = card.closest('.scroll-item');
-                            if (scrollItem) scrollItem.remove();
+                            if (scrollItem) {
+                                scrollItem.remove();
+                                if (!parentScroll.querySelector('.scroll-item')) {
+                                    const empty = document.createElement('div');
+                                    empty.className = 'empty-state';
+                                    empty.innerHTML = `
+                                        <div class="empty-icon">💤</div>
+                                        <div class="empty-title">Your watchlist is empty</div>
+                                        <div class="empty-subtitle">Start adding movies and shows you want to watch.</div>
+                                        <div class="empty-actions">
+                                            <a class="btn btn-primary" href="/movies">Browse Movies</a>
+                                            <a class="btn btn-outline-light" href="/shows">Browse Shows</a>
+                                        </div>`;
+                                    parentScroll.parentNode.replaceChild(empty, parentScroll);
+                                }
+                            }
                         }
                     }
                 } else {
                     addWatchBtn.classList.remove('btn-add-watchlist');
                     addWatchBtn.classList.add('btn-remove-watchlist');
                     addWatchBtn.setAttribute('title', 'Remove from Watchlist');
-                    // If on index page and 'Your Watchlist' strip exists, append this card quickly if not already there
-                    const strips = Array.from(document.querySelectorAll('.scroll-container'));
-                    const watchlistStrip = strips.find(sc => {
-                        let el = sc.previousElementSibling;
-                        while (el && el.tagName !== 'H3') el = el.previousElementSibling;
-                        return el && el.tagName === 'H3' && el.textContent.toLowerCase().includes('your watchlist');
-                    });
-                    if (watchlistStrip && watchlistStrip.previousElementSibling && watchlistStrip.previousElementSibling.previousElementSibling && watchlistStrip.previousElementSibling.previousElementSibling.textContent?.toLowerCase().includes('your watchlist')) {
-                        const existing = watchlistStrip.querySelector(`.movie-card[data-id="${id}"]`);
+                    // Find the watchlist section
+                    const wlHeading = Array.from(document.querySelectorAll('h3.section-heading, h3'))
+                        .find(h => h.textContent.trim().toLowerCase().includes('your watchlist'));
+                    const divider = wlHeading ? wlHeading.nextElementSibling : null;
+                    let contentEl = divider ? divider.nextElementSibling : null;
+                    const link = card.closest('a');
+                    const href = link ? link.getAttribute('href') : (parseInt(type,10)===1?`/shows?show_id=${id}`:`/movies?movie_id=${id}`);
+
+                    // If empty-state exists, replace with a new scroll-container
+                    if (contentEl && contentEl.classList.contains('empty-state')) {
+                        const newStrip = document.createElement('div');
+                        newStrip.className = 'scroll-container';
+                        contentEl.parentNode.replaceChild(newStrip, contentEl);
+                        contentEl = newStrip;
+                    }
+
+                    if (contentEl && contentEl.classList.contains('scroll-container')) {
+                        const existing = contentEl.querySelector(`.movie-card[data-id="${id}"]`);
                         if (!existing) {
                             const itemWrap = document.createElement('div');
                             itemWrap.className = 'scroll-item';
-                            const link = card.closest('a');
-                            const href = link ? link.getAttribute('href') : (parseInt(type,10)===1?`/shows?show_id=${id}`:`/movies?movie_id=${id}`);
                             itemWrap.innerHTML = `<a href="${href}" style="text-decoration: none; color: inherit;">${card.outerHTML}</a>`;
-                            watchlistStrip.insertBefore(itemWrap, watchlistStrip.firstChild);
+                            contentEl.insertBefore(itemWrap, contentEl.firstChild);
                         }
                     }
                 }
